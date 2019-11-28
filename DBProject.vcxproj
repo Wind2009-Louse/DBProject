@@ -112,6 +112,8 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="header.h" />
+    <ClInclude Include="pointer_search.h" />
+    <ClInclude Include="range_search.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />

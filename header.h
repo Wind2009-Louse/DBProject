@@ -1,27 +1,39 @@
 #pragma once
 #include <iostream>
+#include <string>
+#include <vector>
 using namespace std;
 
-// 公共类，指针重载
+// 鍏叡绫伙紝鎸囬拡閲嶈浇
 struct Head_pointer{
 };
 
-// Node定义
+// Node瀹氫箟
 struct Node: Head_pointer {
 	char header;
 	char c;
 	Head_pointer* ptr;
 };
 
-// 跳表指针
+// 涓哄彾瀛愯妭鐐规椂杩斿洖true锛屽惁鍒欒繑鍥瀎alse
+inline bool node_isleaf(Node n) {
+	return n.header & 0b10000000;
+}
+
+// 涓篢-Node鏃惰繑鍥瀟rue锛屼负S-Node鏃惰繑鍥瀎alse
+inline bool node_type(Node n) {
+	return n.header & 0b01000000;
+}
+
+// 璺宠〃鎸囬拡
 struct Container_pointers {
-	Container* ptr_1;
-	Container* ptr_2;
-	Container* ptr_4;
-	Container* ptr_8;
+	Head_pointer* ptr_1;
+	Head_pointer* ptr_2;
+	Head_pointer* ptr_4;
+	Head_pointer* ptr_8;
 };
 
-// Container定义
+// Container瀹氫箟
 struct Container : Head_pointer {
 	int size;
 	Node nodes[255];
