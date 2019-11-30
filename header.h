@@ -4,6 +4,8 @@
 #include <vector>
 using namespace std;
 
+#define CONTAINER_SIZE 127
+
 // 公共类，指针重载
 struct Head_pointer{
 };
@@ -14,8 +16,12 @@ struct Head_pointer{
 
 // Node定义
 struct Node: Head_pointer {
+	// 包含Node的标记信息
 	char header;
+	// Node存储的数据
 	char c;
+	// 指向的下一个目的地
+	// 若为T-Node，则指向容器中的下一个T-Node；若为S-Node，则指向下一个容器。不存在时为NULL。
 	Head_pointer* ptr;
 	// 生成
 	Node(bool isleaf = false, bool is_t = false) :c(0), ptr(NULL) {
@@ -54,8 +60,11 @@ struct Container_pointers {
 
 // Container定义
 struct Container : Head_pointer {
+	// 当前容纳的节点数量
 	int size;
-	Node nodes[255];
+	// 容器中的节点
+	Node nodes[CONTAINER_SIZE];
+	// 跳表指针
 	Container_pointers *ptrs;
 	// 生成
 	Container():size(0) {
@@ -88,6 +97,7 @@ void Insert_into_Container(Container* ctr, char* str) {
 
 	// 检查下一个容器
 	bool check_next_container = false;
+	Node* last_tnode = NULL;
 
 	// 插入过内容，需要检查是否需要分裂
 	bool inserted = false;
@@ -97,17 +107,20 @@ void Insert_into_Container(Container* ctr, char* str) {
 		if (ctr->size == 0 || node_ptr->c != str[0]) {
 			// 向后，插入
 			if (ctr->size == 0 || node_ptr->c > str[0]) {
-				Node* next_ptr = (Node*)node_ptr->ptr;
 				int move_offset = strlen(str) > 1 ? 2 : 1;
 				int point_index = node_ptr - &ctr->nodes[0];
 				// 节点向前移动
 				for (int idx = ctr->size - 1; idx >= point_index; --idx) {
 					ctr->nodes[idx + move_offset] = ctr->nodes[idx];
+					ctr->nodes[idx + move_offset].ptr += (ctr->nodes[idx].type() && ctr->nodes[idx].ptr != NULL ? move_offset : 0);
 				}
+
 				// 插入T-Node
 				ctr->nodes[point_index].header = T_NODE | (strlen(str) < 2 ? LEAF_NODE : 0);
+				// 判断是在列表中插入新T-Node还是容器为空时新增T-Node
+				ctr->nodes[point_index].ptr = ctr->size == 0 ? NULL : &ctr->nodes[point_index + move_offset];
 				ctr->nodes[point_index].c = str[0];
-				ctr->nodes[point_index].ptr = next_ptr;
+
 				// 插入S-Node
 				if (strlen(str) > 1) {
 					ctr->nodes[point_index+1].header = S_NODE | (strlen(str) < 3 ? LEAF_NODE : 0);
@@ -130,6 +143,7 @@ void Insert_into_Container(Container* ctr, char* str) {
 			}
 			// 向前查下一个T-Node
 			if (node_ptr->c < str[0]) {
+				last_tnode = node_ptr;
 				node_ptr = (Node*)node_ptr->ptr;
 				// 查到当前Container尽头
 				if (node_ptr == NULL) {
@@ -151,15 +165,16 @@ void Insert_into_Container(Container* ctr, char* str) {
 			while (node_ptr) {
 				// 查到当前T节点尽头，或者查到比自己大的S-Node
 				if (node_ptr->c == 0 || node_ptr->type() || node_ptr->c > str[1]) {
-					int move_offset = 1;
 					int point_index = node_ptr - &ctr->nodes[0];
 					// 节点向前移动
 					for (int idx = ctr->size - 1; idx >= point_index; --idx) {
-						ctr->nodes[idx + move_offset] = ctr->nodes[idx];
+						ctr->nodes[idx + 1] = ctr->nodes[idx];
+						ctr->nodes[idx + 1].ptr += (ctr->nodes[idx].type() && ctr->nodes[idx].ptr != NULL ? 1 : 0);
 					}
 					// 插入S-Node
 					ctr->nodes[point_index].header = S_NODE | (strlen(str) < 3 ? LEAF_NODE : 0);
 					ctr->nodes[point_index].c = str[1];
+					// 指针指向
 					if (strlen(str) > 2) {
 						Container* new_ctr = new Container();
 						ctr->nodes[point_index].ptr = new_ctr;
@@ -172,7 +187,7 @@ void Insert_into_Container(Container* ctr, char* str) {
 
 					// 结束
 					inserted = true;
-					ctr->size += move_offset;
+					ctr->size += 1;
 					break;
 				}
 				// 找到相同前缀
@@ -193,5 +208,42 @@ void Insert_into_Container(Container* ctr, char* str) {
 			}
 			break;
 		}
+	}
+	
+	if (check_next_container) {
+		// 容器拥有足够空余位置，直接插入在当前容器中
+		if (ctr->size < CONTAINER_SIZE / 2) {
+			// 插入T-Node
+			ctr->nodes[ctr->size].header = T_NODE | (strlen(str) < 2 ? LEAF_NODE : 0);
+			ctr->nodes[ctr->size].c = str[0];
+			ctr->nodes[ctr->size].ptr = NULL;
+			last_tnode->ptr = &ctr->nodes[ctr->size];
+			// 插入S-Node
+			if (strlen(str) > 1) {
+				ctr->nodes[ctr->size + 1].header = S_NODE | (strlen(str) < 3 ? LEAF_NODE : 0);
+				ctr->nodes[ctr->size + 1].c = str[1];
+				if (strlen(str) > 2) {
+					Container* new_ctr = new Container();
+					ctr->nodes[ctr->size + 1].ptr = new_ctr;
+					// 在新容器中更新
+					Insert_into_Container(new_ctr, &str[2]);
+				}
+				else {
+					ctr->nodes[ctr->size + 1].ptr = NULL;
+				}
+			}
+
+			inserted = true;
+			ctr->size += strlen(str) > 1 ? 2 : 1;
+		}
+		// 查找下一个容器
+		else {
+			// TODO
+		}
+	}
+
+	// 容器不足时分裂
+	if (inserted) {
+		// TODO
 	}
 }
