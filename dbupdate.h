@@ -250,7 +250,8 @@ pair<Container*, const char*> Insert_into_Container(Container* ctr, const char* 
 					new_ctr->cptrs->head_ptr = new_ctr;
 					new_ctr->cptrs->parent_ptr = ctr;
 					// 在新容器中更新
-					Insert_into_Container(new_ctr, &str[2]);
+					result_ctr = new_ctr;
+					result_str = &str[2];
 				}
 				else {
 					ctr->nodes[ctr->size + 1].ptr = NULL;
@@ -264,7 +265,6 @@ pair<Container*, const char*> Insert_into_Container(Container* ctr, const char* 
 		else {
 			result_ctr = next_ctr;
 			result_str = str;
-			//Insert_into_Container(next_ctr, str);
 		}
 	}
 
