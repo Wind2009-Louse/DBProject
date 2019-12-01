@@ -124,6 +124,29 @@ Container* Find_Container_with_sortkey(Container* ctr, char sorykey) {
 	return current_ctr;
 }
 
+// 打印容器内容进行测试
+void Print_Container(Container* ctr) {
+	Container* head_ctr = (Container*)ctr->cptrs->head_ptr;
+	Container* ctr_ptr = head_ctr;
+	while (ctr_ptr) {
+		if (ctr == ctr_ptr) {
+			cout << "> ";
+		}
+		cout << ctr_ptr->size << ctr_ptr->nodes[0].c << "\t";
+		for (int i = 0; i < JUMPPOINT_MAXHEIGHT; ++i) {
+			if (ctr_ptr->cptrs->ptrs[i] == NULL) {
+				cout << "NULL\t";
+			}
+			else {
+				Container* _ctr = (Container*)ctr_ptr->cptrs->ptrs[i];
+				cout << _ctr->size << _ctr->nodes[0].c << '\t';
+			}
+		}
+		cout << endl;
+		ctr_ptr = (Container*)ctr_ptr->cptrs->ptrs[0];
+	}
+}
+
 // 对Container进行分割
 void Container_Split(Container* ctr) {
 	// 找中间的T-Node
