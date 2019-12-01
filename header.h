@@ -6,7 +6,7 @@
 using namespace std;
 
 // 容器可以容纳的节点数量
-#define CONTAINER_SIZE 127
+#define CONTAINER_SIZE 255
 // 得到一个比n小的随机整数
 #define randnum(n) (rand()%n)
 

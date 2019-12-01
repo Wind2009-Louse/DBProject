@@ -260,7 +260,7 @@ pair<Container*, const char*> Insert_into_Container(Container* ctr, const char* 
 	}
 
 	// 容器不足时分裂
-	if (inserted && ctr->size * 3 / 2 > CONTAINER_SIZE) {
+	if (inserted && ctr->size * 4 / 3 > CONTAINER_SIZE) {
 		Container_Split(ctr);
 	}
 	return pair<Container*, const char*>(result_ctr, result_str);
