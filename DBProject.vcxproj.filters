@@ -24,6 +24,9 @@
     <ClInclude Include="range_search.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="dbupdate.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">

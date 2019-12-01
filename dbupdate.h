@@ -1,16 +1,16 @@
 #pragma once
 #include "header.h"
 
-// ¸ù¾İsortkey£¬ÔÚContainerÁĞ±íÖĞ´´½¨Ò»¸öĞÂµÄContainer
+// æ ¹æ®sortkeyï¼Œåœ¨Containeråˆ—è¡¨ä¸­åˆ›å»ºä¸€ä¸ªæ–°çš„Container
 Container* Create_Container(Container* ctr, char sortkey) {
 	Container* head_ctr = (Container*)ctr->cptrs->head_ptr;
-	// ĞÂContainerµÄ×î¸ßÖ¸ÕëµÈ¼¶
+	// æ–°Containerçš„æœ€é«˜æŒ‡é’ˆç­‰çº§
 	int level = 0;
 	for (int i = 0; i < JUMPPOINT_MAXHEIGHT - 1 && randnum(2)>0; ++i) {
 		level++;
 	}
 
-	// ×î¿¿½üÄ¿±êµÄContainer
+	// æœ€é è¿‘ç›®æ ‡çš„Container
 	vector<Container*> nearliest_ctrs(JUMPPOINT_MAXHEIGHT, head_ctr);
 	int current_level = level;
 	while (current_level >= 0) {
@@ -22,7 +22,7 @@ Container* Create_Container(Container* ctr, char sortkey) {
 		current_level--;
 	}
 
-	// ´´½¨
+	// åˆ›å»º
 	Container* new_ctr = new Container(head_ctr);
 	for (int i = 0; i <= level; ++i) {
 		new_ctr->cptrs->ptrs[i] = nearliest_ctrs[i]->cptrs->ptrs[i];
@@ -31,9 +31,9 @@ Container* Create_Container(Container* ctr, char sortkey) {
 	return new_ctr;
 }
 
-// ¶ÔContainer½øĞĞ·Ö¸î
+// å¯¹Containerè¿›è¡Œåˆ†å‰²
 void Container_Split(Container* ctr) {
-	// ÕÒÖĞ¼äµÄT-Node
+	// æ‰¾ä¸­é—´çš„T-Node
 	Node* last_ptr = &ctr->nodes[0];
 	Node* fast_ptr = &ctr->nodes[0];
 	Node* slow_ptr = &ctr->nodes[0];
@@ -44,26 +44,26 @@ void Container_Split(Container* ctr) {
 		if (fast_ptr) last_ptr = slow_ptr;
 	}
 
-	// ´´½¨ĞÂÈİÆ÷
+	// åˆ›å»ºæ–°å®¹å™¨
 	char sortkey = slow_ptr->c;
 	Container* new_ctr = Create_Container(ctr, sortkey);
 
-	// °áÔË
+	// æ¬è¿
 	last_ptr->ptr = NULL;
 	int count = 0;
 	while (slow_ptr->c != 0) {
-		// ¸´ÖÆÊı¾İ
+		// å¤åˆ¶æ•°æ®
 		new_ctr->nodes[count].header = slow_ptr->header;
 		new_ctr->nodes[count].c = slow_ptr->c;
 		new_ctr->nodes[count].ptr = slow_ptr->ptr;
-		// T-NodeĞèÒª¸üĞÂÖ¸Õë
+		// T-Nodeéœ€è¦æ›´æ–°æŒ‡é’ˆ
 		if (new_ctr->nodes[count].type() && slow_ptr->ptr) {
 			new_ctr->nodes[count].ptr = &new_ctr->nodes[count] + ((Node*)slow_ptr->ptr - (Node*)slow_ptr);
 		}
 		count++;
 		fast_ptr = slow_ptr;
 		slow_ptr++;
-		// Çå¿Õ
+		// æ¸…ç©º
 		fast_ptr->header = 0;
 		fast_ptr->c = 0;
 		fast_ptr->ptr = NULL;
@@ -72,70 +72,81 @@ void Container_Split(Container* ctr) {
 	ctr->size -= count;
 }
 
-// ½«×Ö·û´®²åÈëµ½ContainerÖĞ
-void Insert_into_Container(Container* ctr, const char* str) {
-	// ²»²åÈë¿Õ×Ö·û´®
+// å°†å­—ç¬¦ä¸²æ’å…¥åˆ°Containerä¸­
+// è¿”å›ä¸‹ä¸€ä¸ªéœ€è¦æŸ¥æ‰¾çš„Containerå’Œstrï¼Œé€šè¿‡è¿­ä»£é¿å…æ ˆæº¢å‡º
+pair<Container*, const char*> Insert_into_Container(Container* ctr, const char* str) {
+	// ç»“æœåˆå§‹åŒ–
+	Container* result_ctr = NULL;
+	const char* result_str = str;
+
+	// ä¸æ’å…¥ç©ºå­—ç¬¦ä¸²
 	if (strlen(str) == 0) {
-		return;
+		return pair<Container*, const char*>(result_ctr, result_str);
 	}
 
-	// ²éÕÒÊÇ·ñÔÚ×ÔÉíNodeÖĞ¿ÉÒÔ²åÈë
+	// æŸ¥æ‰¾æ˜¯å¦åœ¨è‡ªèº«Nodeä¸­å¯ä»¥æ’å…¥
 
-	// ½ÚµãÖ¸Õë
+	// èŠ‚ç‚¹æŒ‡é’ˆ
 	Node* node_ptr = &ctr->nodes[0];
 
-	// ¼ì²éÏÂÒ»¸öÈİÆ÷
+	// æ£€æŸ¥ä¸‹ä¸€ä¸ªå®¹å™¨
 	bool check_next_container = false;
 	Node* last_tnode = NULL;
 
-	// ²åÈë¹ıÄÚÈİ£¬ĞèÒª¼ì²éÊÇ·ñĞèÒª·ÖÁÑ
+	// æ’å…¥è¿‡å†…å®¹ï¼Œéœ€è¦æ£€æŸ¥æ˜¯å¦éœ€è¦åˆ†è£‚
 	bool inserted = false;
 
-	// ÔÚµ±Ç°ÈİÆ÷ÖĞ²éÕÒÊÇ·ñ¿ÉÒÔ²åÈë
+	// åœ¨å½“å‰å®¹å™¨ä¸­æŸ¥æ‰¾æ˜¯å¦å¯ä»¥æ’å…¥
 	while (node_ptr) {
 		// T-search
 		if (ctr->size == 0 || node_ptr->c != str[0]) {
-			// Ïòºó£¬²åÈë
+			// å‘åï¼Œæ’å…¥
 			if (ctr->size == 0 || node_ptr->c > str[0]) {
 				int move_offset = strlen(str) > 1 ? 2 : 1;
 				int point_index = node_ptr - &ctr->nodes[0];
-				// ½ÚµãÏòÇ°ÒÆ¶¯
+				// èŠ‚ç‚¹å‘å‰ç§»åŠ¨
 				for (int idx = ctr->size - 1; idx >= point_index; --idx) {
 					ctr->nodes[idx + move_offset] = ctr->nodes[idx];
 					ctr->nodes[idx + move_offset].ptr += (ctr->nodes[idx].type() && (ctr->nodes[idx].ptr != NULL) ? move_offset : 0) * sizeof(Node);
 				}
 
-				// ²åÈëT-Node
+				// æ’å…¥T-Node
 				ctr->nodes[point_index].header = T_NODE | (strlen(str) < 2 ? LEAF_NODE : 0);
-				// ÅĞ¶ÏÊÇÔÚÁĞ±íÖĞ²åÈëĞÂT-Node»¹ÊÇÈİÆ÷Îª¿ÕÊ±ĞÂÔöT-Node
+				// åˆ¤æ–­æ˜¯åœ¨åˆ—è¡¨ä¸­æ’å…¥æ–°T-Nodeè¿˜æ˜¯å®¹å™¨ä¸ºç©ºæ—¶æ–°å¢T-Node
 				ctr->nodes[point_index].ptr = ctr->size == 0 ? NULL : &ctr->nodes[point_index + move_offset];
 				ctr->nodes[point_index].c = str[0];
 
-				// ²åÈëS-Node
+				// æ’å…¥S-Node
 				if (strlen(str) > 1) {
+					bool updated = ctr->nodes[point_index + 1].c == str[1];
 					ctr->nodes[point_index + 1].header = S_NODE | (strlen(str) < 3 ? LEAF_NODE : 0);
 					ctr->nodes[point_index + 1].c = str[1];
 					if (strlen(str) > 2) {
 						Container* new_ctr = new Container();
 						ctr->nodes[point_index + 1].ptr = new_ctr;
-						// ÔÚĞÂÈİÆ÷ÖĞ¸üĞÂ
-						Insert_into_Container(new_ctr, &str[2]);
+						new_ctr->cptrs->head_ptr = new_ctr;
+						// åœ¨æ–°å®¹å™¨ä¸­æ›´æ–°
+						result_ctr = new_ctr;
+						result_str = &str[2];
+						//Insert_into_Container(new_ctr, &str[2]);
 					}
 					else {
-						ctr->nodes[point_index + 1].ptr = NULL;
+						if (updated) {
+							ctr->nodes[point_index + 1].ptr = NULL;
+						}
 					}
 				}
 
-				// ½áÊø
+				// ç»“æŸ
 				inserted = true;
 				ctr->size += move_offset;
 				break;
 			}
-			// ÏòÇ°²éÏÂÒ»¸öT-Node
+			// å‘å‰æŸ¥ä¸‹ä¸€ä¸ªT-Node
 			if (node_ptr->c < str[0]) {
 				last_tnode = node_ptr;
 				node_ptr = (Node*)node_ptr->ptr;
-				// ²éµ½µ±Ç°Container¾¡Í·
+				// æŸ¥åˆ°å½“å‰Containerå°½å¤´
 				if (node_ptr == NULL) {
 					check_next_container = true;
 					break;
@@ -144,57 +155,67 @@ void Insert_into_Container(Container* ctr, const char* str) {
 		}
 		// S-search
 		else {
-			// ÓÃLEAF_NODE±ê¼ÇÆæÊı³¤¶Èµ¥´Ê
+			// ç”¨LEAF_NODEæ ‡è®°å¥‡æ•°é•¿åº¦å•è¯
 			if (strlen(str) == 1) {
 				node_ptr->header |= LEAF_NODE;
 				break;
 			}
 			Node* t_node_ptr = node_ptr;
-			// ´ÓÏÂÒ»¸ö½Úµã²éÆğ
+			// ä»ä¸‹ä¸€ä¸ªèŠ‚ç‚¹æŸ¥èµ·
 			node_ptr++;
 
 			while (node_ptr) {
-				// ²éµ½µ±Ç°T½Úµã¾¡Í·£¬»òÕß²éµ½±È×Ô¼º´óµÄS-Node
+				// æŸ¥åˆ°å½“å‰TèŠ‚ç‚¹å°½å¤´ï¼Œæˆ–è€…æŸ¥åˆ°æ¯”è‡ªå·±å¤§çš„S-Node
 				if (node_ptr->c == 0 || node_ptr->type() || node_ptr->c > str[1]) {
 					int point_index = node_ptr - &ctr->nodes[0];
-					// ½ÚµãÏòÇ°ÒÆ¶¯
+					// èŠ‚ç‚¹å‘å‰ç§»åŠ¨
 					for (int idx = ctr->size - 1; idx >= point_index; --idx) {
 						ctr->nodes[idx + 1] = ctr->nodes[idx];
 						ctr->nodes[idx + 1].ptr += (ctr->nodes[idx].type() && ctr->nodes[idx].ptr != NULL ? 1 : 0) * sizeof(Node);
 					}
 					t_node_ptr->ptr += sizeof(Node) * (t_node_ptr->ptr == NULL ? 0 : 1);
-					// ²åÈëS-Node
+					// æ’å…¥S-Node
 					ctr->nodes[point_index].header = S_NODE | (strlen(str) < 3 ? LEAF_NODE : 0);
 					ctr->nodes[point_index].c = str[1];
-					// Ö¸ÕëÖ¸Ïò
+					// æŒ‡é’ˆæŒ‡å‘
 					if (strlen(str) > 2) {
 						Container* new_ctr = new Container();
 						ctr->nodes[point_index].ptr = new_ctr;
 						new_ctr->cptrs->head_ptr = new_ctr;
-						// ÔÚĞÂÈİÆ÷ÖĞ¸üĞÂ
-						Insert_into_Container(new_ctr, &str[2]);
+						// åœ¨æ–°å®¹å™¨ä¸­æ›´æ–°
+						result_ctr = new_ctr;
+						result_str = &str[2];
+						//Insert_into_Container(new_ctr, &str[2]);
 					}
 					else {
 						ctr->nodes[point_index].ptr = NULL;
 					}
 
-					// ½áÊø
+					// ç»“æŸ
 					inserted = true;
 					ctr->size += 1;
 					break;
 				}
-				// ÕÒµ½ÏàÍ¬Ç°×º
+				// æ‰¾åˆ°ç›¸åŒå‰ç¼€
 				else if (node_ptr->c == str[1]) {
 					node_ptr->header |= (strlen(str) < 3 ? LEAF_NODE : 0);
 					if (strlen(str) > 2) {
-						Container* new_ctr = new Container();
-						node_ptr->ptr = new_ctr;
-						// ÔÚĞÂÈİÆ÷ÖĞ¸üĞÂ
-						Insert_into_Container(new_ctr, &str[2]);
+						if (node_ptr->ptr == NULL) {
+							Container* new_ctr = new Container();
+							node_ptr->ptr = new_ctr;
+							new_ctr->cptrs->head_ptr = new_ctr;
+							result_ctr = new_ctr;
+						}
+						else {
+							result_ctr = (Container*)node_ptr->ptr;
+						}
+						// åœ¨æ–°å®¹å™¨ä¸­æ›´æ–°
+						result_str = &str[2];
+						//Insert_into_Container(new_ctr, &str[2]);
 					}
 					break;
 				}
-				// ÏòÇ°ËÑË÷
+				// å‘å‰æœç´¢
 				else if (node_ptr->c < str[1]) {
 					node_ptr++;
 				}
@@ -205,21 +226,21 @@ void Insert_into_Container(Container* ctr, const char* str) {
 
 	if (check_next_container) {
 		Container* next_ctr = Find_Container_with_sortkey(ctr, str[0]);
-		// µ±Ç°Îª×îºóÒ»¸öÊÊºÏµÄÈİÆ÷£¬ÔòÖ±½Ó²åÈëÔÚµ±Ç°ÈİÆ÷ÖĞ
+		// å½“å‰ä¸ºæœ€åä¸€ä¸ªé€‚åˆçš„å®¹å™¨ï¼Œåˆ™ç›´æ¥æ’å…¥åœ¨å½“å‰å®¹å™¨ä¸­
 		if (next_ctr == ctr) {
-			// ²åÈëT-Node
+			// æ’å…¥T-Node
 			ctr->nodes[ctr->size].header = T_NODE | (strlen(str) < 2 ? LEAF_NODE : 0);
 			ctr->nodes[ctr->size].c = str[0];
 			ctr->nodes[ctr->size].ptr = NULL;
 			last_tnode->ptr = &ctr->nodes[ctr->size];
-			// ²åÈëS-Node
+			// æ’å…¥S-Node
 			if (strlen(str) > 1) {
 				ctr->nodes[ctr->size + 1].header = S_NODE | (strlen(str) < 3 ? LEAF_NODE : 0);
 				ctr->nodes[ctr->size + 1].c = str[1];
 				if (strlen(str) > 2) {
 					Container* new_ctr = new Container();
 					ctr->nodes[ctr->size + 1].ptr = new_ctr;
-					// ÔÚĞÂÈİÆ÷ÖĞ¸üĞÂ
+					// åœ¨æ–°å®¹å™¨ä¸­æ›´æ–°
 					Insert_into_Container(new_ctr, &str[2]);
 				}
 				else {
@@ -230,14 +251,25 @@ void Insert_into_Container(Container* ctr, const char* str) {
 			inserted = true;
 			ctr->size += strlen(str) > 1 ? 2 : 1;
 		}
-		// ²éÕÒÏÂÒ»¸öÈİÆ÷
+		// æŸ¥æ‰¾ä¸‹ä¸€ä¸ªå®¹å™¨
 		else {
-			Insert_into_Container(next_ctr, str);
+			result_ctr = next_ctr;
+			result_str = str;
+			//Insert_into_Container(next_ctr, str);
 		}
 	}
 
-	// ÈİÆ÷²»×ãÊ±·ÖÁÑ
+	// å®¹å™¨ä¸è¶³æ—¶åˆ†è£‚
 	if (inserted && ctr->size * 3 / 2 > CONTAINER_SIZE) {
 		Container_Split(ctr);
+	}
+	return pair<Container*, const char*>(result_ctr, result_str);
+}
+
+// å°†å­—ç¬¦ä¸²æ’å…¥åˆ°æ•°æ®åº“ä¸­
+void Insert_into_db(Container* ctr, const char* str) {
+	pair<Container*, const char*> result = Insert_into_Container(ctr, str);
+	while (result.first) {
+		result = Insert_into_Container(result.first, result.second);
 	}
 }
