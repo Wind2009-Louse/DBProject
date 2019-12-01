@@ -51,9 +51,10 @@ struct Node: Head_pointer {
 #define JUMPPOINT_MAXHEIGHT 5
 // 跳表指针
 struct Container_pointers {
+	Head_pointer* parent_ptr;
 	Head_pointer* head_ptr;
 	Head_pointer* ptrs[JUMPPOINT_MAXHEIGHT];
-	Container_pointers(Head_pointer* hptr=NULL):head_ptr(hptr){
+	Container_pointers(Head_pointer* hptr=NULL):head_ptr(hptr), parent_ptr(NULL){
 		for (int i = 0; i < JUMPPOINT_MAXHEIGHT; ++i) {
 			ptrs[i] = NULL;
 		}

@@ -56,9 +56,16 @@ void Container_Split(Container* ctr) {
 		new_ctr->nodes[count].header = slow_ptr->header;
 		new_ctr->nodes[count].c = slow_ptr->c;
 		new_ctr->nodes[count].ptr = slow_ptr->ptr;
-		// T-Node需要更新指针
-		if (new_ctr->nodes[count].type() && slow_ptr->ptr) {
-			new_ctr->nodes[count].ptr = &new_ctr->nodes[count] + ((Node*)slow_ptr->ptr - (Node*)slow_ptr);
+		if (slow_ptr->ptr) {
+			// T-Node需要更新指针坐标
+			if (new_ctr->nodes[count].type()) {
+				new_ctr->nodes[count].ptr = &new_ctr->nodes[count] + ((Node*)slow_ptr->ptr - (Node*)slow_ptr);
+			}
+			// S-Node需要让子容器指向新容器
+			else {
+				Container* child_ctr = (Container*)new_ctr->nodes[count].ptr;
+				child_ctr->cptrs->parent_ptr = new_ctr;
+			}
 		}
 		count++;
 		fast_ptr = slow_ptr;
@@ -125,6 +132,7 @@ pair<Container*, const char*> Insert_into_Container(Container* ctr, const char* 
 						Container* new_ctr = new Container();
 						ctr->nodes[point_index + 1].ptr = new_ctr;
 						new_ctr->cptrs->head_ptr = new_ctr;
+						new_ctr->cptrs->parent_ptr = ctr;
 						// 在新容器中更新
 						result_ctr = new_ctr;
 						result_str = &str[2];
@@ -182,10 +190,10 @@ pair<Container*, const char*> Insert_into_Container(Container* ctr, const char* 
 						Container* new_ctr = new Container();
 						ctr->nodes[point_index].ptr = new_ctr;
 						new_ctr->cptrs->head_ptr = new_ctr;
+						new_ctr->cptrs->parent_ptr = ctr;
 						// 在新容器中更新
 						result_ctr = new_ctr;
 						result_str = &str[2];
-						//Insert_into_Container(new_ctr, &str[2]);
 					}
 					else {
 						ctr->nodes[point_index].ptr = NULL;
@@ -204,6 +212,7 @@ pair<Container*, const char*> Insert_into_Container(Container* ctr, const char* 
 							Container* new_ctr = new Container();
 							node_ptr->ptr = new_ctr;
 							new_ctr->cptrs->head_ptr = new_ctr;
+							new_ctr->cptrs->parent_ptr = ctr;
 							result_ctr = new_ctr;
 						}
 						else {
@@ -211,7 +220,6 @@ pair<Container*, const char*> Insert_into_Container(Container* ctr, const char* 
 						}
 						// 在新容器中更新
 						result_str = &str[2];
-						//Insert_into_Container(new_ctr, &str[2]);
 					}
 					break;
 				}
