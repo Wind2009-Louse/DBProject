@@ -83,23 +83,25 @@ Container* Create_Container(Container* ctr, char sortkey) {
 	Container* head_ctr = (Container*)ctr->cptrs->head_ptr;
 	// 新Container的最高指针等级
 	int level = 0;
-	for (int i = 0; i < JUMPPOINT_MAXHEIGHT-1; ++i) {
-		level += randnum(2);
+	for (int i = 0; i < JUMPPOINT_MAXHEIGHT-1 && randnum(2)>0; ++i) {
+		level++;
 	}
 
 	// 最靠近目标的Container
 	vector<Container*> nearliest_ctrs(JUMPPOINT_MAXHEIGHT, head_ctr);
 	int current_level = level;
-	while (current_level) {
-		while (nearliest_ctrs[current_level]->cptrs->ptrs[current_level] && nearliest_ctrs[current_level]->nodes[0].c < sortkey) {
+	while (current_level>=0) {
+		Container* next_ptr = (Container*)nearliest_ctrs[current_level]->cptrs->ptrs[current_level];
+		while (next_ptr && next_ptr->nodes[0].c <= sortkey) {
 			nearliest_ctrs[current_level] = (Container*)nearliest_ctrs[current_level]->cptrs->ptrs[current_level];
+			next_ptr = (Container*)nearliest_ctrs[current_level]->cptrs->ptrs[current_level];
 		}
 		current_level--;
 	}
 
 	// 创建
 	Container* new_ctr = new Container(head_ctr);
-	for (int i = 0; i < level; ++i) {
+	for (int i = 0; i <= level; ++i) {
 		new_ctr->cptrs->ptrs[i] = nearliest_ctrs[i]->cptrs->ptrs[i];
 		nearliest_ctrs[i]->cptrs->ptrs[i] = new_ctr;
 	}
@@ -111,7 +113,7 @@ Container* Find_Container_with_sortkey(Container* ctr, char sorykey) {
 	Container* head_ctr = (Container*)ctr->cptrs->head_ptr;
 	int level = JUMPPOINT_MAXHEIGHT-1;
 	Container* current_ctr = head_ctr;
-	while (level) {
+	while (level>=0) {
 		Container* next_ctr = (Container*)current_ctr->cptrs->ptrs[level];
 		if (next_ctr==NULL || next_ctr->nodes[0].c > sorykey) {
 			level--;
@@ -261,6 +263,7 @@ void Insert_into_Container(Container* ctr, const char* str) {
 					if (strlen(str) > 2) {
 						Container* new_ctr = new Container();
 						ctr->nodes[point_index].ptr = new_ctr;
+						new_ctr->cptrs->head_ptr = new_ctr;
 						// 在新容器中更新
 						Insert_into_Container(new_ctr, &str[2]);
 					}
