@@ -125,7 +125,7 @@ pair<Container*, const char*> Insert_into_Container(Container* ctr, const char* 
 
 				// 插入S-Node
 				if (strlen(str) > 1) {
-					bool updated = ctr->nodes[point_index + 1].c == str[1];
+					bool updated = ctr->nodes[point_index + 1].c != str[1];
 					ctr->nodes[point_index + 1].header = S_NODE | (strlen(str) < 3 ? LEAF_NODE : 0);
 					ctr->nodes[point_index + 1].c = str[1];
 					if (strlen(str) > 2) {
@@ -136,7 +136,6 @@ pair<Container*, const char*> Insert_into_Container(Container* ctr, const char* 
 						// 在新容器中更新
 						result_ctr = new_ctr;
 						result_str = &str[2];
-						//Insert_into_Container(new_ctr, &str[2]);
 					}
 					else {
 						if (updated) {
@@ -248,6 +247,8 @@ pair<Container*, const char*> Insert_into_Container(Container* ctr, const char* 
 				if (strlen(str) > 2) {
 					Container* new_ctr = new Container();
 					ctr->nodes[ctr->size + 1].ptr = new_ctr;
+					new_ctr->cptrs->head_ptr = new_ctr;
+					new_ctr->cptrs->parent_ptr = ctr;
 					// 在新容器中更新
 					Insert_into_Container(new_ctr, &str[2]);
 				}

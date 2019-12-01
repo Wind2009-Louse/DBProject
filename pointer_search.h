@@ -25,55 +25,39 @@ Pointsearch_result Pointsearch_in_container(Pointsearch_result datas) {
 	const char* return_str = datas.str;
 	short return_result = PS_FAILED;
 
-	// 空字符串直接返回
-	if (strlen(datas.str) == 0) {
-		// 返回结果
-		return Pointsearch_result(return_ctr, return_str, return_result);
+	// T-Search
+	Node* node_ptr = &datas.ctr->nodes[0];
+	while (node_ptr && node_ptr->c < datas.str[0]) {
+		node_ptr = (Node*)node_ptr->ptr;
 	}
-
-	// 开始查找
-	Container* ctr = Find_Container_with_sortkey(datas.ctr, datas.str[0]);
-	// 在当前容器中查找
-	if (ctr == datas.ctr) {
-		// T-Search
-		Node* node_ptr = &datas.ctr->nodes[0];
-		while (node_ptr && node_ptr->c < datas.str[0]) {
-			node_ptr = (Node*)node_ptr->ptr;
+	// 查找失败
+	if (!node_ptr || node_ptr->c > datas.str[0]) {
+		return_result = PS_FAILED;
+	}
+	// 奇数长度判断
+	else if (strlen(datas.str) == 1 && node_ptr->is_leaf()) {
+		return_result = PS_SEARCHED;
+	}
+	// S-Search
+	else {
+		node_ptr++;
+		while (node_ptr->c != 0 && !node_ptr->type() && node_ptr->c != datas.str[1]) {
+			node_ptr++;
 		}
 		// 查找失败
-		if (!node_ptr || node_ptr->c > datas.str[0]) {
+		if (node_ptr->c == 0 || node_ptr->type()) {
 			return_result = PS_FAILED;
 		}
-		// 奇数长度判断
-		else if (strlen(datas.str) == 1 && node_ptr->is_leaf()) {
-			return_result = PS_SEARCHED;
+		// 字符串末尾
+		else if (strlen(datas.str) == 2) {
+			return_result = node_ptr->is_leaf() ? PS_SEARCHED : PS_FAILED;
 		}
-		// S-Search
+		// 到下个容器查询
 		else {
-			node_ptr++;
-			while (node_ptr->c != 0 && !node_ptr->type() && node_ptr->c != datas.str[1]) {
-				node_ptr++;
-			}
-			// 查找失败
-			if (node_ptr->c == 0 || node_ptr->type()) {
-				return_result = PS_FAILED;
-			}
-			// 字符串末尾
-			else if (strlen(datas.str) == 2) {
-				return_result = node_ptr->is_leaf() ? PS_SEARCHED : PS_FAILED;
-			}
-			// 到下个容器查询
-			else {
-				return_ctr = (Container*)node_ptr->ptr;
-				return_str = &datas.str[2];
-				return_result = PS_SEARCHING;
-			}
+			return_ctr = (Container*)node_ptr->ptr;
+			return_str = &datas.str[2];
+			return_result = PS_SEARCHING;
 		}
-	}
-	// 到下一个容器查找
-	else {
-		return_ctr = ctr;
-		return_result = PS_SEARCHING;
 	}
 	
 	// 返回结果
@@ -82,8 +66,9 @@ Pointsearch_result Pointsearch_in_container(Pointsearch_result datas) {
 
 // 在数据库中查找字符串
 bool Pointsearch_in_db(Container* ctr, const char* str) {
-	Pointsearch_result result = Pointsearch_in_container(Pointsearch_result(ctr, str));
-	while (result.ctr && (result.result == PS_SEARCHING)) {
+	Pointsearch_result result = Pointsearch_result(ctr, str, PS_SEARCHING);
+	while (result.ctr && strlen(result.str)>0 && result.result == PS_SEARCHING) {
+		result.ctr = Find_Container_with_sortkey(result.ctr, result.str[0]);
 		result = Pointsearch_in_container(result);
 	}
 	return result.result == PS_SEARCHED;
