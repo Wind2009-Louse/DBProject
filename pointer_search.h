@@ -21,7 +21,7 @@ struct Pointsearch_result {
 // 在container中查找字符串
 Pointsearch_result Pointsearch_in_container(Pointsearch_result datas) {
 	// 初始化结果
-	Container* return_ctr = NULL;
+	Container* return_ctr = datas.ctr;
 	const char* return_str = datas.str;
 	short return_result = PS_FAILED;
 
@@ -67,6 +67,7 @@ Pointsearch_result Pointsearch_in_container(Pointsearch_result datas) {
 // 在数据库中查找字符串
 bool Pointsearch_in_db(Container* ctr, const char* str) {
 	Pointsearch_result result = Pointsearch_result(ctr, str, PS_SEARCHING);
+	// 直到有结果为止继续查找
 	while (result.ctr && strlen(result.str)>0 && result.result == PS_SEARCHING) {
 		result.ctr = Find_Container_with_sortkey(result.ctr, result.str[0]);
 		result = Pointsearch_in_container(result);
