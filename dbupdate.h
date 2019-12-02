@@ -106,8 +106,9 @@ pair<Container*, const char*> Insert_into_Container(Container* ctr, const char* 
 	// 在当前容器中查找是否可以插入
 	while (node_ptr) {
 		// T-search
+		// 找不到匹配的T-Node
 		if (ctr->size == 0 || node_ptr->c != str[0]) {
-			// 向后，插入
+			// 找到当前容器的最后一个T-Node仍未符合，则直接在当前容器内插入
 			if (ctr->size == 0 || node_ptr->c > str[0]) {
 				int move_offset = strlen(str) > 1 ? 2 : 1;
 				int point_index = node_ptr - &ctr->nodes[0];
@@ -125,7 +126,6 @@ pair<Container*, const char*> Insert_into_Container(Container* ctr, const char* 
 
 				// 插入S-Node
 				if (strlen(str) > 1) {
-					bool updated = ctr->nodes[point_index + 1].c != str[1];
 					ctr->nodes[point_index + 1].header = S_NODE | (strlen(str) < 3 ? LEAF_NODE : 0);
 					ctr->nodes[point_index + 1].c = str[1];
 					if (strlen(str) > 2) {
@@ -138,9 +138,7 @@ pair<Container*, const char*> Insert_into_Container(Container* ctr, const char* 
 						result_str = &str[2];
 					}
 					else {
-						if (updated) {
-							ctr->nodes[point_index + 1].ptr = NULL;
-						}
+						ctr->nodes[point_index + 1].ptr = NULL;
 					}
 				}
 
@@ -207,17 +205,19 @@ pair<Container*, const char*> Insert_into_Container(Container* ctr, const char* 
 				else if (node_ptr->c == str[1]) {
 					node_ptr->header |= (strlen(str) < 3 ? LEAF_NODE : 0);
 					if (strlen(str) > 2) {
+						// 如果没有子容器，则创建新容器在其中搜索
 						if (node_ptr->ptr == NULL) {
 							Container* new_ctr = new Container();
 							node_ptr->ptr = new_ctr;
 							new_ctr->cptrs->head_ptr = new_ctr;
 							new_ctr->cptrs->parent_ptr = ctr;
+							// 在新容器中更新
 							result_ctr = new_ctr;
 						}
+						// 在旧容器中搜索
 						else {
 							result_ctr = (Container*)node_ptr->ptr;
 						}
-						// 在新容器中更新
 						result_str = &str[2];
 					}
 					break;
