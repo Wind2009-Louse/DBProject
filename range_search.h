@@ -24,14 +24,14 @@ vector<string> Rangesearch_in_container(
 		Node* t_node = &ctr_ptr->nodes[0];
 		while (t_node && t_node->type()) {
 			// 判断是否超过上界，若超过则不继续向下搜索
-			if (!is_no_upper && (t_node->c > upper_str[0] || (!is_upper_equal && t_node->c == upper_str[0]))) {
+			if (!is_no_upper && t_node->c > upper_str[0]) {
 				break;
 			}
 			// 判断是否在下界内
-			if ((lower_str[0] < t_node->c || (is_lower_equal && lower_str[0] == t_node->c)))
+			if (lower_str[0] <= t_node->c)
 			{
 				// 叶子判断
-				if (t_node->is_leaf() && (lower_str[0] < t_node->c || strlen(lower_str) < 2)) {
+				if (t_node->is_leaf() && (lower_str[0] < t_node->c || (strlen(lower_str) < 2 && is_lower_equal))) {
 					results.push_back(string(1,t_node->c));
 				}
 				// 是否超出上界，若超过则不继续向下搜索
@@ -42,20 +42,23 @@ vector<string> Rangesearch_in_container(
 					char low_char = (strlen(lower_str) < 2 || lower_str[0] < t_node->c) ? 0 : lower_str[1];
 					while (s_node && !s_node->type() && s_node->c != 0) {
 						// 判断是否超出上界，若超过则不继续向下搜索
-						if (!no_upper && (s_node->c > upper_str[1] || (!is_upper_equal && s_node->c == upper_str[1]))) {
+						if (!no_upper && s_node->c > upper_str[1]) {
 							break;
 						}
 						// 判断是否超过下界
-						if (low_char < s_node->c || (is_lower_equal && low_char == s_node->c)) {
+						if (low_char <= s_node->c) {
 							string prefix = { t_node->c, s_node->c };
 							// 叶子判断
-							if (s_node->is_leaf() && (strcmp(lower_str, prefix.c_str()) < 0 || strlen(lower_str) < 3)) {
+							if (s_node->is_leaf() && 
+								(strcmp(lower_str, prefix.c_str()) < 0 || (is_lower_equal && strlen(lower_str) < 3)) &&
+								(no_upper || strcmp(upper_str, prefix.c_str()) > 0 || (is_upper_equal && strlen(upper_str) < 3))
+								) {
 								results.push_back(prefix);
 							}
 							bool sub_no_upper = no_upper || s_node->c < upper_str[1];
 							// 有子容器，往下搜索
 							if (s_node->ptr) {
-								const char* sub_lower = (strlen(lower_str) < 2) ? "" : &lower_str[2];
+								const char* sub_lower = (strlen(lower_str) < 2 || strcmp(lower_str, prefix.c_str()) < 0) ? "" : &lower_str[2];
 								vector<string> subset = Rangesearch_in_container((Container*)s_node->ptr, sub_lower, &upper_str[2], is_lower_equal, is_upper_equal, sub_no_upper);
 								// 添加前缀
 								for (int i = 0; i < subset.size(); ++i) {
