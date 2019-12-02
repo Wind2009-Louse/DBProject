@@ -45,6 +45,15 @@ struct Node: Head_pointer {
 	inline bool type() {
 		return header & 0b01000000;
 	}
+
+	// 去除叶子
+	inline void deleaf() {
+		header &= 0b01111111;
+	}
+	// 添加为叶子
+	inline void beleaf() {
+		header |= LEAF_NODE;
+	}
 };
 
 // 跳表的大小

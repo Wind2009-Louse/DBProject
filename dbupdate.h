@@ -1,5 +1,6 @@
 #pragma once
 #include "header.h"
+#include "pointer_search.h"
 
 // 根据sortkey，在Container列表中创建一个新的Container
 Container* Create_Container(Container* ctr, char sortkey) {
@@ -119,14 +120,20 @@ pair<Container*, const char*> Insert_into_Container(Container* ctr, const char* 
 				}
 
 				// 插入T-Node
-				ctr->nodes[point_index].header = T_NODE | (strlen(str) < 2 ? LEAF_NODE : 0);
+				ctr->nodes[point_index].header = T_NODE;
+				if (strlen(str) == 1) {
+					ctr->nodes[point_index].beleaf();
+				}
 				// 判断是在列表中插入新T-Node还是容器为空时新增T-Node
 				ctr->nodes[point_index].ptr = ctr->size == 0 ? NULL : &ctr->nodes[point_index + move_offset];
 				ctr->nodes[point_index].c = str[0];
 
 				// 插入S-Node
 				if (strlen(str) > 1) {
-					ctr->nodes[point_index + 1].header = S_NODE | (strlen(str) < 3 ? LEAF_NODE : 0);
+					ctr->nodes[point_index + 1].header = S_NODE;
+					if (strlen(str) == 2) {
+						ctr->nodes[point_index + 1].beleaf();
+					}
 					ctr->nodes[point_index + 1].c = str[1];
 					if (strlen(str) > 2) {
 						Container* new_ctr = new Container();
@@ -162,7 +169,7 @@ pair<Container*, const char*> Insert_into_Container(Container* ctr, const char* 
 		else {
 			// 用LEAF_NODE标记奇数长度单词
 			if (strlen(str) == 1) {
-				node_ptr->header |= LEAF_NODE;
+				node_ptr->beleaf();
 				break;
 			}
 			Node* t_node_ptr = node_ptr;
@@ -180,7 +187,10 @@ pair<Container*, const char*> Insert_into_Container(Container* ctr, const char* 
 					}
 					t_node_ptr->ptr += sizeof(Node) * (t_node_ptr->ptr == NULL ? 0 : 1);
 					// 插入S-Node
-					ctr->nodes[point_index].header = S_NODE | (strlen(str) < 3 ? LEAF_NODE : 0);
+					ctr->nodes[point_index].header = S_NODE;
+					if (strlen(str) == 2) {
+						ctr->nodes[point_index].beleaf();
+					}
 					ctr->nodes[point_index].c = str[1];
 					// 指针指向
 					if (strlen(str) > 2) {
@@ -203,7 +213,9 @@ pair<Container*, const char*> Insert_into_Container(Container* ctr, const char* 
 				}
 				// 找到相同前缀
 				else if (node_ptr->c == str[1]) {
-					node_ptr->header |= (strlen(str) < 3 ? LEAF_NODE : 0);
+					if (strlen(str) < 3) {
+						node_ptr->beleaf();
+					}
 					if (strlen(str) > 2) {
 						// 如果没有子容器，则创建新容器在其中搜索
 						if (node_ptr->ptr == NULL) {
@@ -236,13 +248,19 @@ pair<Container*, const char*> Insert_into_Container(Container* ctr, const char* 
 		// 当前为最后一个适合的容器，则直接插入在当前容器中
 		if (next_ctr == ctr) {
 			// 插入T-Node
-			ctr->nodes[ctr->size].header = T_NODE | (strlen(str) < 2 ? LEAF_NODE : 0);
+			ctr->nodes[ctr->size].header = T_NODE;
+			if (strlen(str) == 1) {
+				ctr->nodes[ctr->size].beleaf();
+			}
 			ctr->nodes[ctr->size].c = str[0];
 			ctr->nodes[ctr->size].ptr = NULL;
 			last_tnode->ptr = &ctr->nodes[ctr->size];
 			// 插入S-Node
 			if (strlen(str) > 1) {
-				ctr->nodes[ctr->size + 1].header = S_NODE | (strlen(str) < 3 ? LEAF_NODE : 0);
+				ctr->nodes[ctr->size + 1].header = S_NODE;
+				if (strlen(str) == 2) {
+					ctr->nodes[ctr->size + 1].beleaf();
+				}
 				ctr->nodes[ctr->size + 1].c = str[1];
 				if (strlen(str) > 2) {
 					Container* new_ctr = new Container();
