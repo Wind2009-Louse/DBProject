@@ -300,3 +300,162 @@ void Insert_into_db(Container* ctr, const char* str) {
 		result = Insert_into_Container(result.first, result.second);
 	}
 }
+
+// 在数据库中删除指定数据库，返回是否删除成功。
+bool Delete_in_db(Container* input_ctr, const char* str) {
+	Pointsearch_result result = Pointsearch_result(input_ctr, str, PS_SEARCHING);
+	// 直到有结果为止继续查找
+	while (result.ctr && strlen(result.str)>0 && result.result == PS_SEARCHING) {
+		result.ctr = Find_Container_with_sortkey(result.ctr, result.str[0]);
+		result = Pointsearch_in_container(result);
+	}
+	// 若查不到结果，则返回false
+	if (result.result == PS_FAILED) {
+		return false;
+	}
+
+	string remain_str(str);
+	Container* ctr = result.ctr;
+	bool deleted = false;
+	while (remain_str.size() > 0 && ctr) {
+		// 获取需要查找的字符
+		char t_char, s_char;
+		// 偶数长度
+		if (remain_str.size() % 2) {
+			t_char = remain_str[remain_str.size() - 2];
+			s_char = remain_str[remain_str.size() - 1];
+			remain_str.pop_back();
+			remain_str.pop_back();
+		}
+		// 奇数长度
+		else {
+			t_char = remain_str[remain_str.size() - 1];
+			s_char = 0;
+			remain_str.pop_back();
+		}
+
+		// T-search
+		Node* t_node = &ctr->nodes[0];
+		while (t_node->c < t_char) {
+			t_node = (Node*)t_node->ptr;
+		}
+		// 找不到T-Node，出错返回
+		if (t_node->c > t_char) {
+			return false;
+		}
+
+		// S-Search
+		if (s_char != 0) {
+			Node* s_node = t_node + 1;
+			while (s_node->c != 0 && !s_node->type() && s_node->c < s_char) {
+				s_node++;
+			}
+			// 找不到S-Node，出错返回
+			if (s_node->c == 0 || s_node->type()) {
+				return false;
+			}
+			if (!deleted) {
+				// 在没有删除过的情况下找到一个非叶子节点，出错返回
+				if (!s_node->is_leaf()) {
+					return false;
+				}
+				deleted = true;
+				s_node->deleaf();
+			}
+			// 在删除过的情况下找到一个叶子节点，或者该S-Node下仍有容器，说明非唯一S-Node
+			// 提早结束
+			if (s_node->is_leaf() || s_node->ptr != NULL) {
+				return true;
+			}
+			// 删除S-Node
+			while (s_node->c != 0) {
+				Node* next_node = s_node + 1;
+				s_node->header = next_node->header;
+				s_node->c = next_node->c;
+				s_node->ptr = next_node->ptr;
+				s_node->ptr -= (s_node->type() && s_node->ptr != NULL ? 1 : 0) * sizeof(Node);
+				s_node = next_node;
+			}
+			ctr->size--;
+		}
+		// 判断T-Node是否应该去叶
+		else {
+			if (!deleted) {
+				// 在没有删除过的情况下找到一个非叶子节点，出错返回
+				if (!t_node->is_leaf()) {
+					return false;
+				}
+				deleted = true;
+				t_node->deleaf();
+			}
+		}
+
+		// 在删除过的情况下找到一个叶子节点，或者该T-Node下仍有S-Node，说明非唯一T-Node
+		// 提早结束
+		if (t_node->is_leaf()) {
+			return true;
+		}
+		else {
+			Node* next_node = t_node + 1;
+			if (!next_node->type() || next_node->c != 0) {
+				return true;
+			}
+		}
+
+		// 删除T-Node
+		while (t_node->c != 0) {
+			Node* next_node = t_node + 1;
+			t_node->header = next_node->header;
+			t_node->c = next_node->c;
+			t_node->ptr = next_node->ptr;
+			t_node->ptr -= (t_node->type() && t_node->ptr != NULL ? 1 : 0) * sizeof(Node);
+			t_node = next_node;
+		}
+		ctr->size--;
+
+		// 容器被清空，删除整个容器
+		if (ctr->size == 0) {
+			// 跳表中删除该容器
+			Container* head_ctr = (Container*)ctr->cptrs->head_ptr;
+			int level = JUMPPOINT_MAXHEIGHT - 1;
+			while (level >= 0 && head_ctr) {
+				Container* next_ctr = (Container*)head_ctr->cptrs->ptrs[level];
+				if (next_ctr == NULL){
+					level--;
+				}
+				else if (next_ctr != ctr) {
+					head_ctr = next_ctr;
+				}
+				else {
+					head_ctr->cptrs->ptrs[level] = ctr->cptrs->ptrs[level];
+					level--;
+				}
+			}
+
+			// 父容器中删除指向该容器的指针
+			head_ctr = (Container*)ctr->cptrs->parent_ptr;
+			// 找不到父容器，出错返回
+			if (head_ctr == NULL) {
+				return false;
+			}
+			Node* node_ptr = &head_ctr->nodes[0];
+			bool removed_from_parent = false;
+			while (node_ptr->c != 0) {
+				if (node_ptr->ptr == ctr) {
+					node_ptr->ptr = NULL;
+					removed_from_parent = true;
+					break;
+				}
+			}
+
+			// 没有在父容器中找到自己，出错返回
+			if (!removed_from_parent) {
+				return false;
+			}
+
+			delete ctr;
+			ctr = head_ctr;
+		}
+	}
+	return true;
+}
