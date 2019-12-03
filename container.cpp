@@ -139,13 +139,11 @@ template <typename value_t> void Container<value_t>::Container_Split() {
 	// 搬运
 	last_ptr->ptr = NULL;
 	int count = 0;
+	int copy_length = (this->size - (slow_ptr - &this->nodes[0])) * sizeof(Node<value_t>);
+	memcpy_s(&new_ctr->nodes[0], copy_length, slow_ptr, copy_length);
+	fast_ptr = slow_ptr;
 	while (slow_ptr->c != 0) {
-		// 复制数据
-		new_ctr->nodes[count].header = slow_ptr->header;
-		new_ctr->nodes[count].c = slow_ptr->c;
-		new_ctr->nodes[count].ptr = slow_ptr->ptr;
-		new_ctr->nodes[count].value_ptr = slow_ptr->value_ptr;
-		if (slow_ptr->ptr) {
+		if (new_ctr->nodes[count].ptr) {
 			// T-Node需要更新指针坐标
 			if (new_ctr->nodes[count].type()) {
 				new_ctr->nodes[count].ptr = &new_ctr->nodes[count] + ((Node<value_t>*)slow_ptr->ptr - (Node<value_t>*)slow_ptr);
@@ -157,14 +155,10 @@ template <typename value_t> void Container<value_t>::Container_Split() {
 			}
 		}
 		count++;
-		fast_ptr = slow_ptr;
 		slow_ptr++;
-		// 清空
-		fast_ptr->header = 0;
-		fast_ptr->c = 0;
-		fast_ptr->ptr = NULL;
-		fast_ptr->value_ptr = NULL;
 	}
+	// 清空
+	memset(fast_ptr, 0, copy_length);
 	new_ctr->size = count;
 	this->size -= count;
 }
