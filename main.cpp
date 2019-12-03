@@ -4,7 +4,7 @@
 
 int main() {
 	Container* ctr = new Container();
-	ctr->cptrs->head_ptr = ctr;
+	ctr->cptrs.head_ptr = ctr;
 	
 	// input
 	while (true) {

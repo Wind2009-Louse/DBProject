@@ -12,7 +12,7 @@ vector<string> Rangesearch_in_container(
 	// 寻找范围查询起点
 	Container* ctr_ptr;
 	if (strlen(lower_str) == 0) {
-		ctr_ptr = (Container*)ctr->cptrs->head_ptr;
+		ctr_ptr = (Container*)ctr->cptrs.head_ptr;
 	}
 	else {
 		ctr_ptr = Find_Container_with_sortkey(ctr, lower_str[0]);
@@ -73,7 +73,7 @@ vector<string> Rangesearch_in_container(
 			}
 			t_node = (Node*)t_node->ptr;
 		}
-		ctr_ptr = (Container*)ctr_ptr->cptrs->ptrs[0];
+		ctr_ptr = (Container*)ctr_ptr->cptrs.ptrs[0];
 	}
 
 	// TODO

@@ -4,7 +4,7 @@
 
 // 根据sortkey，在Container列表中创建一个新的Container
 Container* Create_Container(Container* ctr, char sortkey) {
-	Container* head_ctr = (Container*)ctr->cptrs->head_ptr;
+	Container* head_ctr = (Container*)ctr->cptrs.head_ptr;
 	// 新Container的最高指针等级
 	int level = 0;
 	for (int i = 0; i < JUMPPOINT_MAXHEIGHT - 1 && randnum(2)>0; ++i) {
@@ -15,10 +15,10 @@ Container* Create_Container(Container* ctr, char sortkey) {
 	vector<Container*> nearliest_ctrs(JUMPPOINT_MAXHEIGHT, head_ctr);
 	int current_level = level;
 	while (current_level >= 0) {
-		Container* next_ptr = (Container*)nearliest_ctrs[current_level]->cptrs->ptrs[current_level];
+		Container* next_ptr = (Container*)nearliest_ctrs[current_level]->cptrs.ptrs[current_level];
 		while (next_ptr && next_ptr->nodes[0].c <= sortkey) {
-			nearliest_ctrs[current_level] = (Container*)nearliest_ctrs[current_level]->cptrs->ptrs[current_level];
-			next_ptr = (Container*)nearliest_ctrs[current_level]->cptrs->ptrs[current_level];
+			nearliest_ctrs[current_level] = (Container*)nearliest_ctrs[current_level]->cptrs.ptrs[current_level];
+			next_ptr = (Container*)nearliest_ctrs[current_level]->cptrs.ptrs[current_level];
 		}
 		current_level--;
 	}
@@ -26,8 +26,8 @@ Container* Create_Container(Container* ctr, char sortkey) {
 	// 创建
 	Container* new_ctr = new Container(head_ctr);
 	for (int i = 0; i <= level; ++i) {
-		new_ctr->cptrs->ptrs[i] = nearliest_ctrs[i]->cptrs->ptrs[i];
-		nearliest_ctrs[i]->cptrs->ptrs[i] = new_ctr;
+		new_ctr->cptrs.ptrs[i] = nearliest_ctrs[i]->cptrs.ptrs[i];
+		nearliest_ctrs[i]->cptrs.ptrs[i] = new_ctr;
 	}
 	return new_ctr;
 }
@@ -65,7 +65,7 @@ void Container_Split(Container* ctr) {
 			// S-Node需要让子容器指向新容器
 			else {
 				Container* child_ctr = (Container*)new_ctr->nodes[count].ptr;
-				child_ctr->cptrs->parent_ptr = new_ctr;
+				child_ctr->cptrs.parent_ptr = new_ctr;
 			}
 		}
 		count++;
@@ -138,8 +138,8 @@ pair<Container*, const char*> Insert_into_Container(Container* ctr, const char* 
 					if (strlen(str) > 2) {
 						Container* new_ctr = new Container();
 						ctr->nodes[point_index + 1].ptr = new_ctr;
-						new_ctr->cptrs->head_ptr = new_ctr;
-						new_ctr->cptrs->parent_ptr = ctr;
+						new_ctr->cptrs.head_ptr = new_ctr;
+						new_ctr->cptrs.parent_ptr = ctr;
 						// 在新容器中更新
 						result_ctr = new_ctr;
 						result_str = &str[2];
@@ -196,8 +196,8 @@ pair<Container*, const char*> Insert_into_Container(Container* ctr, const char* 
 					if (strlen(str) > 2) {
 						Container* new_ctr = new Container();
 						ctr->nodes[point_index].ptr = new_ctr;
-						new_ctr->cptrs->head_ptr = new_ctr;
-						new_ctr->cptrs->parent_ptr = ctr;
+						new_ctr->cptrs.head_ptr = new_ctr;
+						new_ctr->cptrs.parent_ptr = ctr;
 						// 在新容器中更新
 						result_ctr = new_ctr;
 						result_str = &str[2];
@@ -221,8 +221,8 @@ pair<Container*, const char*> Insert_into_Container(Container* ctr, const char* 
 						if (node_ptr->ptr == NULL) {
 							Container* new_ctr = new Container();
 							node_ptr->ptr = new_ctr;
-							new_ctr->cptrs->head_ptr = new_ctr;
-							new_ctr->cptrs->parent_ptr = ctr;
+							new_ctr->cptrs.head_ptr = new_ctr;
+							new_ctr->cptrs.parent_ptr = ctr;
 							// 在新容器中更新
 							result_ctr = new_ctr;
 						}
@@ -265,8 +265,8 @@ pair<Container*, const char*> Insert_into_Container(Container* ctr, const char* 
 				if (strlen(str) > 2) {
 					Container* new_ctr = new Container();
 					ctr->nodes[ctr->size + 1].ptr = new_ctr;
-					new_ctr->cptrs->head_ptr = new_ctr;
-					new_ctr->cptrs->parent_ptr = ctr;
+					new_ctr->cptrs.head_ptr = new_ctr;
+					new_ctr->cptrs.parent_ptr = ctr;
 					// 在新容器中更新
 					result_ctr = new_ctr;
 					result_str = &str[2];
@@ -427,15 +427,15 @@ bool Delete_in_db(Container* input_ctr, const char* str) {
 		ctr->size--;
 
 		// 指向父节点
-		Container* parent_ctr = (Container*)ctr->cptrs->parent_ptr;
+		Container* parent_ctr = (Container*)ctr->cptrs.parent_ptr;
 		
 		// 容器被清空，删除整个容器
 		if (ctr->size == 0) {
 			// 跳表中删除该容器
-			Container* head_ctr = (Container*)ctr->cptrs->head_ptr;
+			Container* head_ctr = (Container*)ctr->cptrs.head_ptr;
 			int level = JUMPPOINT_MAXHEIGHT - 1;
 			while (level >= 0 && head_ctr) {
-				Container* next_ctr = (Container*)head_ctr->cptrs->ptrs[level];
+				Container* next_ctr = (Container*)head_ctr->cptrs.ptrs[level];
 				if (next_ctr == NULL){
 					level--;
 				}
@@ -443,13 +443,13 @@ bool Delete_in_db(Container* input_ctr, const char* str) {
 					head_ctr = next_ctr;
 				}
 				else {
-					head_ctr->cptrs->ptrs[level] = ctr->cptrs->ptrs[level];
+					head_ctr->cptrs.ptrs[level] = ctr->cptrs.ptrs[level];
 					level--;
 				}
 			}
 
 			// 父容器中删除指向该容器的指针
-			head_ctr = (Container*)ctr->cptrs->parent_ptr;
+			head_ctr = (Container*)ctr->cptrs.parent_ptr;
 			// 找不到父容器，出错返回
 			if (head_ctr == NULL) {
 				return false;
