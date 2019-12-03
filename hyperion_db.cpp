@@ -113,14 +113,14 @@ template <typename value_t> bool Hyperion_DB<value_t>::Delete_in_db(const char* 
 				right_node->c = next_node->c;
 				right_node->value_ptr = next_node->value_ptr;
 				right_node->ptr = next_node->ptr;
-				right_node->ptr -= (right_node->type() && right_node->ptr != NULL ? 1 : 0) * sizeof(Node<value_t*>);
+				right_node->ptr -= (right_node->type() && right_node->ptr != NULL ? 1 : 0) * sizeof(Node<value_t>);
 				right_node = next_node;
 			}
 			// 左侧T-Node指针修改
 			Node<value_t>* left_node = &ctr->nodes[0];
 			while (left_node && left_node < s_node) {
 				if (left_node->type() && left_node->ptr != NULL && left_node->ptr > s_node) {
-					left_node->ptr -= sizeof(Node<value_t*>);
+					left_node->ptr -= sizeof(Node<value_t>);
 					break;
 				}
 				left_node = (Node<value_t>*)left_node->ptr;
@@ -160,7 +160,7 @@ template <typename value_t> bool Hyperion_DB<value_t>::Delete_in_db(const char* 
 			right_node->c = next_node->c;
 			right_node->value_ptr = next_node->value_ptr;
 			right_node->ptr = next_node->ptr;
-			right_node->ptr -= (right_node->type() && right_node->ptr != NULL ? 1 : 0) * sizeof(Node<value_t*>);
+			right_node->ptr -= (right_node->type() && right_node->ptr != NULL ? 1 : 0) * sizeof(Node<value_t>);
 			right_node = next_node;
 		}
 		ctr->size--;
