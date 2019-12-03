@@ -368,13 +368,23 @@ bool Delete_in_db(Container* input_ctr, const char* str) {
 				return true;
 			}
 			// 删除S-Node
-			while (s_node->c != 0) {
-				Node* next_node = s_node + 1;
-				s_node->header = next_node->header;
-				s_node->c = next_node->c;
-				s_node->ptr = next_node->ptr;
-				s_node->ptr -= (s_node->type() && s_node->ptr != NULL ? 1 : 0) * sizeof(Node);
-				s_node = next_node;
+			Node* right_node = s_node;
+			// 右侧节点内容左移
+			while (right_node->c != 0) {
+				Node* next_node = right_node + 1;
+				right_node->header = next_node->header;
+				right_node->c = next_node->c;
+				right_node->ptr = next_node->ptr;
+				right_node->ptr -= (right_node->type() && right_node->ptr != NULL ? 1 : 0) * sizeof(Node);
+				right_node = next_node;
+			}
+			// 左侧T-Node指针修改
+			Node* left_node = &ctr->nodes[0];
+			while (left_node != s_node) {
+				if (left_node->type() && left_node->ptr != NULL) {
+					left_node->ptr -= sizeof(Node);
+				}
+				left_node++;
 			}
 			ctr->size--;
 		}
@@ -403,13 +413,23 @@ bool Delete_in_db(Container* input_ctr, const char* str) {
 		}
 
 		// 删除T-Node
-		while (t_node->c != 0) {
-			Node* next_node = t_node + 1;
-			t_node->header = next_node->header;
-			t_node->c = next_node->c;
-			t_node->ptr = next_node->ptr;
-			t_node->ptr -= (t_node->type() && t_node->ptr != NULL ? 1 : 0) * sizeof(Node);
-			t_node = next_node;
+		// 右侧节点内容左移
+		Node* right_node = t_node;
+		while (right_node->c != 0) {
+			Node* next_node = right_node + 1;
+			right_node->header = next_node->header;
+			right_node->c = next_node->c;
+			right_node->ptr = next_node->ptr;
+			right_node->ptr -= (right_node->type() && right_node->ptr != NULL ? 1 : 0) * sizeof(Node);
+			right_node = next_node;
+		}
+		// 左侧T-Node指针修改
+		Node* left_node = &ctr->nodes[0];
+		while (left_node != t_node) {
+			if (left_node->type() && left_node->ptr != NULL) {
+				left_node->ptr -= sizeof(Node);
+			}
+			left_node++;
 		}
 		ctr->size--;
 
