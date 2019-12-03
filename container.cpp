@@ -230,12 +230,14 @@ template <typename value_t> pair<Container<value_t>*, const char*> Container<val
 		if (this->size == 0 || node_ptr->c != str[0]) {
 			// 找到当前容器的最后一个T-Node仍未符合，则直接在当前容器内插入
 			if (this->size == 0 || node_ptr->c > str[0]) {
+				// 节点向前移动
 				int move_offset = strlen(str) > 1 ? 2 : 1;
 				int point_index = node_ptr - &this->nodes[0];
-				// 节点向前移动
-				for (int idx = this->size - 1; idx >= point_index; --idx) {
-					this->nodes[idx + move_offset] = this->nodes[idx];
-					this->nodes[idx + move_offset].ptr += (this->nodes[idx].type() && (this->nodes[idx].ptr != NULL) ? move_offset : 0) * sizeof(Node<value_t>);
+				int move_length = (this->size - point_index) * sizeof(Node<value_t>);
+				memcpy_s(&this->nodes[point_index + move_offset], move_length, &this->nodes[point_index], move_length);
+				for (int idx = this->size - 1 + move_offset; idx > point_index; --idx) {
+					// 修改T-Node指针
+					this->nodes[idx].ptr += (this->nodes[idx].type() && (this->nodes[idx].ptr != NULL) ? move_offset : 0) * sizeof(Node<value_t>);
 				}
 
 				// 插入T-Node
@@ -299,11 +301,12 @@ template <typename value_t> pair<Container<value_t>*, const char*> Container<val
 			while (node_ptr) {
 				// 查到当前T节点尽头，或者查到比自己大的S-Node
 				if (node_ptr->c == 0 || node_ptr->type() || node_ptr->c > str[1]) {
-					int point_index = node_ptr - &this->nodes[0];
 					// 节点向前移动
-					for (int idx = this->size - 1; idx >= point_index; --idx) {
-						this->nodes[idx + 1] = this->nodes[idx];
-						this->nodes[idx + 1].ptr += (this->nodes[idx].type() && this->nodes[idx].ptr != NULL ? 1 : 0) * sizeof(Node<value_t>);
+					int point_index = node_ptr - &this->nodes[0];
+					int move_length = (this->size - point_index) * sizeof(Node<value_t>);
+					memcpy_s(&this->nodes[point_index + 1], move_length, &this->nodes[point_index], move_length);
+					for (int idx = this->size; idx > point_index; --idx) {
+						this->nodes[idx].ptr += (this->nodes[idx].type() && this->nodes[idx].ptr != NULL ? 1 : 0) * sizeof(Node<value_t>);
 					}
 					t_node_ptr->ptr += sizeof(Node<value_t>) * (t_node_ptr->ptr == NULL ? 0 : 1);
 					// 插入S-Node
