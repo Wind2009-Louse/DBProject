@@ -3,8 +3,7 @@
 #include "range_search.h"
 
 int main() {
-	Container* ctr = new Container();
-	ctr->cptrs.head_ptr = ctr;
+	Container* ctr = Create_Empty_Container();
 	
 	// input
 	while (true) {

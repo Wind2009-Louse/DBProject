@@ -2,6 +2,14 @@
 #include "header.h"
 #include "pointer_search.h"
 
+// 创建一个空的Container，其头指针指向自己（当前列的首个容器）
+Container* Create_Empty_Container(Container* parent_ctr = NULL) {
+	Container* ctr = new Container();
+	ctr->cptrs.head_ptr = ctr;
+	ctr->cptrs.parent_ptr = parent_ctr;
+	return ctr;
+}
+
 // 根据sortkey，在Container列表中创建一个新的Container
 Container* Create_Container(Container* ctr, char sortkey) {
 	Container* head_ctr = (Container*)ctr->cptrs.head_ptr;
@@ -136,10 +144,8 @@ pair<Container*, const char*> Insert_into_Container(Container* ctr, const char* 
 					}
 					ctr->nodes[point_index + 1].c = str[1];
 					if (strlen(str) > 2) {
-						Container* new_ctr = new Container();
+						Container* new_ctr = Create_Empty_Container(ctr);
 						ctr->nodes[point_index + 1].ptr = new_ctr;
-						new_ctr->cptrs.head_ptr = new_ctr;
-						new_ctr->cptrs.parent_ptr = ctr;
 						// 在新容器中更新
 						result_ctr = new_ctr;
 						result_str = &str[2];
@@ -194,10 +200,8 @@ pair<Container*, const char*> Insert_into_Container(Container* ctr, const char* 
 					ctr->nodes[point_index].c = str[1];
 					// 指针指向
 					if (strlen(str) > 2) {
-						Container* new_ctr = new Container();
+						Container* new_ctr = Create_Empty_Container(ctr);
 						ctr->nodes[point_index].ptr = new_ctr;
-						new_ctr->cptrs.head_ptr = new_ctr;
-						new_ctr->cptrs.parent_ptr = ctr;
 						// 在新容器中更新
 						result_ctr = new_ctr;
 						result_str = &str[2];
@@ -219,10 +223,8 @@ pair<Container*, const char*> Insert_into_Container(Container* ctr, const char* 
 					if (strlen(str) > 2) {
 						// 如果没有子容器，则创建新容器在其中搜索
 						if (node_ptr->ptr == NULL) {
-							Container* new_ctr = new Container();
+							Container* new_ctr = Create_Empty_Container(ctr);
 							node_ptr->ptr = new_ctr;
-							new_ctr->cptrs.head_ptr = new_ctr;
-							new_ctr->cptrs.parent_ptr = ctr;
 							// 在新容器中更新
 							result_ctr = new_ctr;
 						}
@@ -262,11 +264,10 @@ pair<Container*, const char*> Insert_into_Container(Container* ctr, const char* 
 					ctr->nodes[ctr->size + 1].beleaf();
 				}
 				ctr->nodes[ctr->size + 1].c = str[1];
+				// 字符有剩余部分，在S-Node指向的新容器中更新
 				if (strlen(str) > 2) {
-					Container* new_ctr = new Container();
+					Container* new_ctr = Create_Empty_Container(ctr);
 					ctr->nodes[ctr->size + 1].ptr = new_ctr;
-					new_ctr->cptrs.head_ptr = new_ctr;
-					new_ctr->cptrs.parent_ptr = ctr;
 					// 在新容器中更新
 					result_ctr = new_ctr;
 					result_str = &str[2];
