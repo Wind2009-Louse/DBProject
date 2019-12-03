@@ -19,17 +19,20 @@ struct Head_pointer{
 #define S_NODE 0b00000000
 
 // Node定义
-struct Node: Head_pointer {
+template<typename value_t> struct Node: Head_pointer {
 	// 包含Node的标记信息
 	char header;
-	// Node存储的数据
+	// Node存储的Key
 	char c;
+	// 指向数据
+	value_t* value_ptr;
 	// 指向的下一个目的地
 	// 若为T-Node，则指向容器中的下一个T-Node；若为S-Node，则指向下一个容器。不存在时为NULL。
 	Head_pointer* ptr;
 	// 生成
-	Node(bool isleaf = false, bool is_t = false) :c(0), ptr(NULL) {
+	Node<value_t>(bool isleaf = false, bool is_t = false) :c(0), ptr(NULL) {
 		header = 0;
+		value_ptr = NULL;
 		if (isleaf) {
 			header &= 0b10000000;
 		}
@@ -49,6 +52,10 @@ struct Node: Head_pointer {
 	// 去除叶子
 	inline void deleaf() {
 		header &= 0b01111111;
+		if (this->value_ptr != NULL) {
+			delete this->value_ptr;
+			this->value_ptr = NULL;
+		}
 	}
 	// 添加为叶子
 	inline void beleaf() {

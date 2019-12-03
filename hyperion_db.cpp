@@ -1,23 +1,19 @@
+#pragma once
 #include "hyperion_db.h"
 
-// 数据库初始化
-void Hyperion_DB::Init() {
-	this->ctr = Container::Create_Empty_Container();
-}
-
 // 在数据库中查找字符串
-bool Hyperion_DB::Pointsearch_in_db(const char* str) {
-	Pointsearch_result result = Pointsearch_result(this->ctr, str, PS_SEARCHING);
+template <typename value_t> Pointsearch_result<value_t> Hyperion_DB<value_t>::Pointsearch_in_db(const char* str) {
+	Pointsearch_result<value_t> result = Pointsearch_result<value_t>(this->ctr, str, PS_SEARCHING);
 	// 直到有结果为止继续查找
 	while (result.ctr && strlen(result.str)>0 && result.result == PS_SEARCHING) {
 		result.ctr = result.ctr->Find_Container_with_sortkey(result.str[0]);
 		result = result.Pointsearch_in_container();
 	}
-	return result.result == PS_SEARCHED;
+	return result;
 }
 
 // 在数据库查找区间内的字符串
-vector<string> Hyperion_DB::Rangesearch_in_db(
+template <typename value_t> vector<pair<string, value_t*> > Hyperion_DB<value_t>::Rangesearch_in_db(
 	const char* str_1, const char* str_2,
 	bool is_lower_equal, bool is_upper_equal, bool is_no_upper
 ) {
@@ -31,20 +27,20 @@ vector<string> Hyperion_DB::Rangesearch_in_db(
 }
 
 // 将字符串插入到数据库中
-void Hyperion_DB::Insert_into_db(const char* str) {
+template <typename value_t> void Hyperion_DB<value_t>::Insert_into_db(const char* str, value_t* value_p) {
 	// 提前结束
-	if (!ctr) {
+	if (!this->ctr) {
 		return;
 	}
-	pair<Container*, const char*> result = this->ctr->Insert_into_Container(str);
+	pair<Container<value_t>*, const char*> result = this->ctr->Insert_into_Container(str, value_p);
 	while (result.first) {
-		result = result.first->Insert_into_Container(result.second);
+		result = result.first->Insert_into_Container(result.second, value_p);
 	}
 }
 
 // 在数据库中删除指定数据，返回是否删除成功。
-bool Hyperion_DB::Delete_in_db(const char* str) {
-	Pointsearch_result result = Pointsearch_result(this->ctr, str, PS_SEARCHING);
+template <typename value_t> bool Hyperion_DB<value_t>::Delete_in_db(const char* str) {
+	Pointsearch_result<value_t> result = Pointsearch_result<value_t>(this->ctr, str, PS_SEARCHING);
 	// 直到有结果为止继续查找
 	while (result.ctr && strlen(result.str)>0 && result.result == PS_SEARCHING) {
 		result.ctr = result.ctr->Find_Container_with_sortkey(result.str[0]);
@@ -56,7 +52,7 @@ bool Hyperion_DB::Delete_in_db(const char* str) {
 	}
 
 	string remain_str(str);
-	Container* ctr = result.ctr;
+	Container<value_t>* ctr = result.ctr;
 	bool deleted = false;
 	while (remain_str.size() > 0 && ctr) {
 		// 获取需要查找的字符
@@ -76,9 +72,9 @@ bool Hyperion_DB::Delete_in_db(const char* str) {
 		}
 
 		// T-search
-		Node* t_node = &ctr->nodes[0];
+		Node<value_t>* t_node = &ctr->nodes[0];
 		while (t_node->c < t_char) {
-			t_node = (Node*)t_node->ptr;
+			t_node = (Node<value_t>*)t_node->ptr;
 		}
 		// 找不到T-Node，出错返回
 		if (t_node->c > t_char) {
@@ -87,7 +83,7 @@ bool Hyperion_DB::Delete_in_db(const char* str) {
 
 		// S-Search
 		if (s_char != 0) {
-			Node* s_node = t_node + 1;
+			Node<value_t>* s_node = t_node + 1;
 			while (s_node->c != 0 && !s_node->type() && s_node->c < s_char) {
 				s_node++;
 			}
@@ -109,24 +105,25 @@ bool Hyperion_DB::Delete_in_db(const char* str) {
 				return true;
 			}
 			// 删除S-Node
-			Node* right_node = s_node;
+			Node<value_t>* right_node = s_node;
 			// 右侧节点内容左移
 			while (right_node->c != 0) {
-				Node* next_node = right_node + 1;
+				Node<value_t>* next_node = right_node + 1;
 				right_node->header = next_node->header;
 				right_node->c = next_node->c;
+				right_node->value_ptr = next_node->value_ptr;
 				right_node->ptr = next_node->ptr;
-				right_node->ptr -= (right_node->type() && right_node->ptr != NULL ? 1 : 0) * sizeof(Node);
+				right_node->ptr -= (right_node->type() && right_node->ptr != NULL ? 1 : 0) * sizeof(Node<value_t>);
 				right_node = next_node;
 			}
 			// 左侧T-Node指针修改
-			Node* left_node = &ctr->nodes[0];
+			Node<value_t>* left_node = &ctr->nodes[0];
 			while (left_node && left_node < s_node) {
 				if (left_node->type() && left_node->ptr != NULL && left_node->ptr > s_node) {
-					left_node->ptr -= sizeof(Node);
+					left_node->ptr -= sizeof(Node<value_t>);
 					break;
 				}
-				left_node = (Node*)left_node->ptr;
+				left_node = (Node<value_t>*)left_node->ptr;
 			}
 			ctr->size--;
 		}
@@ -148,7 +145,7 @@ bool Hyperion_DB::Delete_in_db(const char* str) {
 			return true;
 		}
 		else {
-			Node* next_node = t_node + 1;
+			Node<value_t>* next_node = t_node + 1;
 			if (next_node->c != 0 && !next_node->type()) {
 				return true;
 			}
@@ -156,27 +153,28 @@ bool Hyperion_DB::Delete_in_db(const char* str) {
 
 		// 删除T-Node
 		// 右侧节点内容左移
-		Node* right_node = t_node;
+		Node<value_t>* right_node = t_node;
 		while (right_node->c != 0) {
-			Node* next_node = right_node + 1;
+			Node<value_t>* next_node = right_node + 1;
 			right_node->header = next_node->header;
 			right_node->c = next_node->c;
+			right_node->value_ptr = next_node->value_ptr;
 			right_node->ptr = next_node->ptr;
-			right_node->ptr -= (right_node->type() && right_node->ptr != NULL ? 1 : 0) * sizeof(Node);
+			right_node->ptr -= (right_node->type() && right_node->ptr != NULL ? 1 : 0) * sizeof(Node<value_t>);
 			right_node = next_node;
 		}
 		ctr->size--;
 
 		// 指向父节点
-		Container* parent_ctr = (Container*)ctr->cptrs.parent_ptr;
+		Container<value_t>* parent_ctr = (Container<value_t>*)ctr->cptrs.parent_ptr;
 
 		// 容器被清空，删除整个容器
 		if (ctr->size == 0) {
 			// 跳表中删除该容器
-			Container* head_ctr = (Container*)ctr->cptrs.head_ptr;
+			Container<value_t>* head_ctr = (Container<value_t>*)ctr->cptrs.head_ptr;
 			int level = JUMPPOINT_MAXHEIGHT - 1;
 			while (level >= 0 && head_ctr) {
-				Container* next_ctr = (Container*)head_ctr->cptrs.ptrs[level];
+				Container<value_t>* next_ctr = (Container<value_t>*)head_ctr->cptrs.ptrs[level];
 				if (next_ctr == NULL) {
 					level--;
 				}
@@ -190,12 +188,12 @@ bool Hyperion_DB::Delete_in_db(const char* str) {
 			}
 
 			// 父容器中删除指向该容器的指针
-			head_ctr = (Container*)ctr->cptrs.parent_ptr;
+			head_ctr = (Container<value_t>*)ctr->cptrs.parent_ptr;
 			// 找不到父容器，出错返回
 			if (head_ctr == NULL) {
 				return false;
 			}
-			Node* node_ptr = &head_ctr->nodes[0];
+			Node<value_t>* node_ptr = &head_ctr->nodes[0];
 			bool removed_from_parent = false;
 			while (node_ptr->c != 0) {
 				if (node_ptr->ptr == ctr) {

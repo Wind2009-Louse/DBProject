@@ -2,13 +2,13 @@
 #include "header.h"
 
 // Container定义
-struct Container : Head_pointer {
+template <typename value_t> struct Container : Head_pointer {
 	// 当前容纳的节点数量
 	int size;
 	// 跳表指针
 	Container_pointers cptrs;
 	// 容器中的节点
-	Node nodes[CONTAINER_SIZE];
+	Node<value_t> nodes[CONTAINER_SIZE];
 	// 生成
 	Container(Container* head_ptr = NULL) :size(0) {
 		cptrs = Container_pointers(head_ptr);
@@ -26,10 +26,10 @@ struct Container : Head_pointer {
 	void Print_Container();
 
 	// 根据T-Node查找容器或者最接近的容器
-	Container* Find_Container_with_sortkey(char sorykey);
+	Container<value_t>* Find_Container_with_sortkey(char sorykey);
 
 	// 在container中查找在lower_str和upper_str范围的字符串
-	vector<string> Rangesearch_in_container(
+	vector<pair<string, value_t*> > Rangesearch_in_container(
 		const char* lower_str, const char* upper_str,
 		bool is_lower_equal = false, bool is_upper_equal = false, bool is_no_upper = false
 	);
@@ -38,9 +38,9 @@ struct Container : Head_pointer {
 	void Container_Split();
 
 	// 根据sortkey，在Container列表中创建一个新的Container
-	Container* Create_Container(char sortkey);
+	Container<value_t>* Create_Container(char sortkey);
 
 	// 将字符串插入到Container中
 	// 返回下一个需要查找的Container和str，通过迭代避免栈溢出
-	pair<Container*, const char*> Insert_into_Container(const char* str);
+	pair<Container<value_t>*, const char*> Insert_into_Container(const char* str, value_t* value_p);
 };
