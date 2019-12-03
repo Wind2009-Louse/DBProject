@@ -380,11 +380,12 @@ bool Delete_in_db(Container* input_ctr, const char* str) {
 			}
 			// 左侧T-Node指针修改
 			Node* left_node = &ctr->nodes[0];
-			while (left_node != s_node) {
-				if (left_node->type() && left_node->ptr != NULL) {
+			while (left_node && left_node < s_node) {
+				if (left_node->type() && left_node->ptr != NULL && left_node->ptr > s_node) {
 					left_node->ptr -= sizeof(Node);
+					break;
 				}
-				left_node++;
+				left_node = (Node*)left_node->ptr;
 			}
 			ctr->size--;
 		}
