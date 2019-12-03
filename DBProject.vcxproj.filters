@@ -18,18 +18,27 @@
     <ClInclude Include="header.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="pointer_search.h">
+    <ClInclude Include="container.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="range_search.h">
+    <ClInclude Include="pointsearch_result.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="dbupdate.h">
+    <ClInclude Include="hyperion_db.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="container.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="pointsearch_result.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="hyperion_db.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

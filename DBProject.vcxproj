@@ -111,13 +111,16 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="dbupdate.h" />
+    <ClInclude Include="container.h" />
+    <ClInclude Include="hyperion_db.h" />
     <ClInclude Include="header.h" />
-    <ClInclude Include="pointer_search.h" />
-    <ClInclude Include="range_search.h" />
+    <ClInclude Include="pointsearch_result.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="container.cpp" />
+    <ClCompile Include="hyperion_db.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="pointsearch_result.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

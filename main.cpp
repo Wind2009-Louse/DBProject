@@ -1,10 +1,10 @@
-#include "dbupdate.h"
-#include "pointer_search.h"
-#include "range_search.h"
+#include "hyperion_db.h"
+#include "container.h"
 
 int main() {
-	Container* ctr = Create_Empty_Container();
-	
+	Hyperion_DB db;
+	db.Init();
+
 	// input
 	while (true) {
 		string ip;
@@ -12,7 +12,7 @@ int main() {
 		if (ip == "0") {
 			break;
 		}
-		Insert_into_db(ctr, ip.c_str());
+		db.Insert_into_db(ip.c_str());
 	}
 
 	// remove
@@ -22,7 +22,7 @@ int main() {
 		if (ip == "0") {
 			break;
 		}
-		cout << (Delete_in_db(ctr, ip.c_str()) ? "True" : "False") << endl;
+		cout << (db.Delete_in_db(ip.c_str()) ? "True" : "False") << endl;
 	}
 
 	// point test
@@ -32,7 +32,7 @@ int main() {
 		if (ip == "0") {
 			break;
 		}
-		bool result = Pointsearch_in_db(ctr, ip.c_str());
+		bool result = db.Pointsearch_in_db(ip.c_str());
 		cout << (result ? "True" : "False") << endl;
 	}
 
@@ -40,7 +40,7 @@ int main() {
 	string lower = "", upper = "";
 	bool no_upper = true;
 	while (true) {
-		vector<string> results = Rangesearch_in_db(ctr, lower.c_str(), upper.c_str(), true, true, no_upper);
+		vector<string> results = db.Rangesearch_in_db(lower.c_str(), upper.c_str(), true, true, no_upper);
 		//cout << "Results:" << endl;
 		for (int i = 0; i < results.size(); ++i) {
 			//cout << '\t' << results[i] << endl;
@@ -53,7 +53,5 @@ int main() {
 			break;
 		}
 	}
-
-	Print_Container(ctr);
 	//system("pause");
 }
