@@ -321,7 +321,7 @@ bool Delete_in_db(Container* input_ctr, const char* str) {
 		// 获取需要查找的字符
 		char t_char, s_char;
 		// 偶数长度
-		if (remain_str.size() % 2) {
+		if (remain_str.size() % 2 == 0) {
 			t_char = remain_str[remain_str.size() - 2];
 			s_char = remain_str[remain_str.size() - 1];
 			remain_str.pop_back();
@@ -407,7 +407,7 @@ bool Delete_in_db(Container* input_ctr, const char* str) {
 		}
 		else {
 			Node* next_node = t_node + 1;
-			if (!next_node->type() || next_node->c != 0) {
+			if (next_node->c != 0 && !next_node->type()) {
 				return true;
 			}
 		}
@@ -423,16 +423,11 @@ bool Delete_in_db(Container* input_ctr, const char* str) {
 			right_node->ptr -= (right_node->type() && right_node->ptr != NULL ? 1 : 0) * sizeof(Node);
 			right_node = next_node;
 		}
-		// 左侧T-Node指针修改
-		Node* left_node = &ctr->nodes[0];
-		while (left_node != t_node) {
-			if (left_node->type() && left_node->ptr != NULL) {
-				left_node->ptr -= sizeof(Node);
-			}
-			left_node++;
-		}
 		ctr->size--;
 
+		// 指向父节点
+		Container* parent_ctr = (Container*)ctr->cptrs->parent_ptr;
+		
 		// 容器被清空，删除整个容器
 		if (ctr->size == 0) {
 			// 跳表中删除该容器
@@ -466,6 +461,7 @@ bool Delete_in_db(Container* input_ctr, const char* str) {
 					removed_from_parent = true;
 					break;
 				}
+				node_ptr++;
 			}
 
 			// 没有在父容器中找到自己，出错返回
@@ -474,8 +470,8 @@ bool Delete_in_db(Container* input_ctr, const char* str) {
 			}
 
 			delete ctr;
-			ctr = head_ctr;
 		}
+		ctr = parent_ctr;
 	}
 	return true;
 }
