@@ -106,15 +106,12 @@ template <typename value_t> bool Hyperion_DB<value_t>::Delete_in_db(const char* 
 			}
 			// 删除S-Node
 			Node<value_t>* right_node = s_node;
+			int move_length = (ctr->size - (s_node - &ctr->nodes[0])) * sizeof(Node<value_t>);
+			memcpy_s(s_node, move_length, s_node+1, move_length);
 			// 右侧节点内容左移
 			while (right_node->c != 0) {
-				Node<value_t>* next_node = right_node + 1;
-				right_node->header = next_node->header;
-				right_node->c = next_node->c;
-				right_node->value_ptr = next_node->value_ptr;
-				right_node->ptr = next_node->ptr;
 				right_node->ptr -= (right_node->type() && right_node->ptr != NULL ? 1 : 0) * sizeof(Node<value_t>);
-				right_node = next_node;
+				right_node++;
 			}
 			// 左侧T-Node指针修改
 			Node<value_t>* left_node = &ctr->nodes[0];
@@ -154,14 +151,11 @@ template <typename value_t> bool Hyperion_DB<value_t>::Delete_in_db(const char* 
 		// 删除T-Node
 		// 右侧节点内容左移
 		Node<value_t>* right_node = t_node;
+		int move_length = (ctr->size - (t_node - &ctr->nodes[0])) * sizeof(Node<value_t>);
+		memcpy_s(t_node, move_length, t_node + 1, move_length);
 		while (right_node->c != 0) {
-			Node<value_t>* next_node = right_node + 1;
-			right_node->header = next_node->header;
-			right_node->c = next_node->c;
-			right_node->value_ptr = next_node->value_ptr;
-			right_node->ptr = next_node->ptr;
 			right_node->ptr -= (right_node->type() && right_node->ptr != NULL ? 1 : 0) * sizeof(Node<value_t>);
-			right_node = next_node;
+			right_node++;
 		}
 		ctr->size--;
 
