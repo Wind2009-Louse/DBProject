@@ -223,7 +223,7 @@ template <typename value_t> pair<Container<value_t>*, const char*> Container<val
 		// 找不到匹配的T-Node
 		if (this->size == 0 || node_ptr->c != str[0]) {
 			// 找到当前容器的最后一个T-Node仍未符合，则直接在当前容器内插入
-			if (this->size == 0 || node_ptr->c > str[0]) {
+			if (node_ptr->c == 0 || node_ptr->c > str[0]) {
 				// 节点向前移动
 				int move_offset = strlen(str) > 1 ? 2 : 1;
 				int point_index = node_ptr - &this->nodes[0];
@@ -243,6 +243,10 @@ template <typename value_t> pair<Container<value_t>*, const char*> Container<val
 				// 判断是在列表中插入新T-Node还是容器为空时新增T-Node
 				this->nodes[point_index].ptr = this->size == 0 ? NULL : &this->nodes[point_index + move_offset];
 				this->nodes[point_index].c = str[0];
+
+				if (last_tnode) {
+					last_tnode->ptr = &this->nodes[point_index];
+				}
 
 				// 插入S-Node
 				if (strlen(str) > 1) {
@@ -275,8 +279,13 @@ template <typename value_t> pair<Container<value_t>*, const char*> Container<val
 				node_ptr = (Node<value_t>*)node_ptr->ptr;
 				// 查到当前Container尽头
 				if (node_ptr == NULL) {
-					check_next_container = true;
-					break;
+					Container* next_ctr = this->Find_Container_with_sortkey(str[0]);
+					if (next_ctr != this) {
+						result_ctr = next_ctr;
+						result_str = str;
+						break;
+					}
+					node_ptr = &this->nodes[this->size];
 				}
 			}
 		}
@@ -358,52 +367,8 @@ template <typename value_t> pair<Container<value_t>*, const char*> Container<val
 		}
 	}
 
-	if (check_next_container) {
-		Container* next_ctr = this->Find_Container_with_sortkey(str[0]);
-		// 当前为最后一个适合的容器，则直接插入在当前容器中
-		if (next_ctr == this) {
-			// 插入T-Node
-			this->nodes[this->size].header = T_NODE;
-			if (strlen(str) == 1) {
-				this->nodes[this->size].beleaf();
-				this->nodes[this->size].value_ptr = value_p;
-			}
-			this->nodes[this->size].c = str[0];
-			this->nodes[this->size].ptr = NULL;
-			last_tnode->ptr = &this->nodes[this->size];
-			// 插入S-Node
-			if (strlen(str) > 1) {
-				this->nodes[this->size + 1].header = S_NODE;
-				if (strlen(str) == 2) {
-					this->nodes[this->size + 1].beleaf();
-					this->nodes[this->size + 1].value_ptr = value_p;
-				}
-				this->nodes[this->size + 1].c = str[1];
-				// 字符有剩余部分，在S-Node指向的新容器中更新
-				if (strlen(str) > 2) {
-					Container<value_t>* new_ctr = Container::Create_Empty_Container(this);
-					this->nodes[this->size + 1].ptr = new_ctr;
-					// 在新容器中更新
-					result_ctr = new_ctr;
-					result_str = &str[2];
-				}
-				else {
-					this->nodes[this->size + 1].ptr = NULL;
-				}
-			}
-
-			inserted = true;
-			this->size += strlen(str) > 1 ? 2 : 1;
-		}
-		// 查找下一个容器
-		else {
-			result_ctr = next_ctr;
-			result_str = str;
-		}
-	}
-
 	// 容器不足时分裂
-	if (inserted && this->size * 4 / 3 > CONTAINER_SIZE) {
+	if (inserted && this->size * 8 / 7 > CONTAINER_SIZE) {
 		this->Container_Split();
 	}
 	return pair<Container<value_t>*, const char*>(result_ctr, result_str);
