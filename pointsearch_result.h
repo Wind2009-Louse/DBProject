@@ -11,10 +11,11 @@ template<typename value_t> struct Pointsearch_result {
 	Container<value_t>* ctr;
 	// 需要查找的字符串
 	const char* str;
-	// 查询结果
-	short result;
 	// value指针
 	value_t* value_ptr;
+	// 查询结果
+	short result;
+
 	// 初始化
 	Pointsearch_result(Container<value_t>* c, const char* s, short r = PS_SEARCHING, value_t* result_ptr = NULL) :ctr(c), str(s), result(r), value_ptr(result_ptr) {
 	}
