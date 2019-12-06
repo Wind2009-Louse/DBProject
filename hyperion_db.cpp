@@ -1,7 +1,7 @@
 #pragma once
 #include "hyperion_db.h"
 
-// 在数据库中查找字符串
+// 在数据库中查找指定Key是否存在
 template <typename value_t> Pointsearch_result<value_t> Hyperion_DB<value_t>::Pointsearch_in_db(const char* str) {
 	Pointsearch_result<value_t> result = Pointsearch_result<value_t>(this->ctr, str, PS_SEARCHING);
 	// 直到有结果为止继续查找
@@ -12,21 +12,33 @@ template <typename value_t> Pointsearch_result<value_t> Hyperion_DB<value_t>::Po
 	return result;
 }
 
-// 在数据库查找区间内的字符串
+// 在数据库查找区间内的Key对应的Value
 template <typename value_t> vector<pair<string, value_t*> > Hyperion_DB<value_t>::Rangesearch_in_db(
-	const char* str_1, const char* str_2,
-	bool is_lower_equal, bool is_upper_equal, bool is_no_upper
+	const char* lower_str, const char* upper_str,
+	bool is_lower_equal, bool is_upper_equal, bool is_no_upper, vector<value_t> except_list
 ) {
-	// 判断字符串大小
-	int cmp_result = strcmp(str_1, str_2);
-	const char* lower_str = (cmp_result < 0) ? str_1 : str_2;
-	const char* upper_str = (cmp_result > 0) ? str_1 : str_2;
-	return this->ctr->Rangesearch_in_container(
+	// 提前结束
+	if (!this->ctr) {
+		return vector<pair<string, value_t*> >();
+	}
+	vector<pair<string, value_t*> > sub_result = this->ctr->Rangesearch_in_container(
 		lower_str, upper_str,
 		is_lower_equal, is_upper_equal, is_no_upper);
+	if (except_list.size() == 0) {
+		return sub_result;
+	}
+	else {
+		vector<pair<string, value_t*> > results;
+		for (int i = 0; i < sub_result.size(); ++ i) {
+			if (find(except_list.begin(), except_list.end(), *sub_result[i].second) == except_list.end()) {
+				results.push_back(sub_result[i]);
+			}
+		}
+		return results;
+	}
 }
 
-// 将字符串插入到数据库中
+// 将Key-value插入到数据库中
 template <typename value_t> void Hyperion_DB<value_t>::Insert_into_db(const char* str, value_t* value_p) {
 	// 提前结束
 	if (!this->ctr) {
@@ -38,7 +50,7 @@ template <typename value_t> void Hyperion_DB<value_t>::Insert_into_db(const char
 	}
 }
 
-// 在数据库中删除指定数据，返回是否删除成功。
+// 在数据库中删除指定Key对应的数据，返回是否删除成功。
 template <typename value_t> bool Hyperion_DB<value_t>::Delete_in_db(const char* str) {
 	Pointsearch_result<value_t> result = Pointsearch_result<value_t>(this->ctr, str, PS_SEARCHING);
 	// 直到有结果为止继续查找
@@ -78,7 +90,7 @@ template <typename value_t> bool Hyperion_DB<value_t>::Delete_in_db(const char* 
 		}
 		// 找不到T-Node，出错返回
 		if (t_node->c > t_char) {
-			return false;
+			throw "Unable to find T-Node!";
 		}
 
 		// S-Search
@@ -89,12 +101,12 @@ template <typename value_t> bool Hyperion_DB<value_t>::Delete_in_db(const char* 
 			}
 			// 找不到S-Node，出错返回
 			if (s_node->c == 0 || s_node->type()) {
-				return false;
+				throw "Unable to find S-Node!";
 			}
 			if (!deleted) {
 				// 在没有删除过的情况下找到一个非叶子节点，出错返回
 				if (!s_node->is_leaf()) {
-					return false;
+					throw "Trying to delete non-leaf S-Node!";
 				}
 				deleted = true;
 				s_node->deleaf();
@@ -129,7 +141,7 @@ template <typename value_t> bool Hyperion_DB<value_t>::Delete_in_db(const char* 
 			if (!deleted) {
 				// 在没有删除过的情况下找到一个非叶子节点，出错返回
 				if (!t_node->is_leaf()) {
-					return false;
+					throw "Trying to delete non-leaf T-Node!";
 				}
 				deleted = true;
 				t_node->deleaf();
@@ -185,7 +197,7 @@ template <typename value_t> bool Hyperion_DB<value_t>::Delete_in_db(const char* 
 			head_ctr = (Container<value_t>*)ctr->cptrs.parent_ptr;
 			// 找不到父容器，出错返回
 			if (head_ctr == NULL) {
-				return false;
+				throw "Trying to delete a container without parent!";
 			}
 			Node<value_t>* node_ptr = &head_ctr->nodes[0];
 			bool removed_from_parent = false;
@@ -200,7 +212,7 @@ template <typename value_t> bool Hyperion_DB<value_t>::Delete_in_db(const char* 
 
 			// 没有在父容器中找到自己，出错返回
 			if (!removed_from_parent) {
-				return false;
+				throw "Trying to delete a container can't find from its parent!";
 			}
 
 			delete ctr;
