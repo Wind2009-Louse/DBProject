@@ -12,6 +12,13 @@ template <typename value_t> Pointsearch_result<value_t> Hyperion_DB<value_t>::Po
 	return result;
 }
 
+// 释放内存
+template <typename value_t> void Hyperion_DB<value_t>::erase() {
+	if (this->ctr) {
+		this->ctr->erase();
+	}
+}
+
 // 在数据库查找区间内的Key对应的Value
 template <typename value_t> vector<pair<string, value_t*> > Hyperion_DB<value_t>::Rangesearch_in_db(
 	const char* lower_str, const char* upper_str,

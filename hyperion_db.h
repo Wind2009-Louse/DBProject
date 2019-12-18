@@ -10,6 +10,9 @@ public:
 		ctr = Container<value_t>::Create_Empty_Container();
 	}
 
+	// 释放内存
+	void erase();
+
 	// 在数据库中查找指定Key是否存在
 	Pointsearch_result<value_t> Pointsearch_in_db(const char* str);
 

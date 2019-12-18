@@ -14,6 +14,9 @@ template <typename value_t> struct Container : Head_pointer {
 		cptrs = Container_pointers(head_ptr);
 	}
 
+	// 删除容器及其子容器
+	void erase();
+
 	// 创建一个空的Container，其头指针指向自己（当前列的首个容器）
 	static Container* Create_Empty_Container(Container* parent_ctr = NULL) {
 		Container* ctr = new Container();

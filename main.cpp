@@ -19,17 +19,18 @@ vector<string> string_split(string str, const string gap) {
 #define DB_DELETELAST 4
 #define DB_SEARCH 5
 #define DB_HELP 6
+#define DB_EXIT 7
 
 int main() {
-	// ³õÊ¼»¯
+	// åˆå§‹åŒ–
 	string input_line;
 	Hyperion_DB<string> db;
 
-	// ²éÑ¯
+	// æŸ¥è¯¢
 	vector<string> rangesearch_opes = {"<", ">","<=",">=", "!="};
 	vector<pair<string, string*> > results;
 
-	// ÃüÁîÀàĞÍ
+	// å‘½ä»¤ç±»å‹
 	map<string, int> cmd_types;
 	cmd_types["insert"] = DB_INSERT;
 	cmd_types["showall"] = DB_SHOWALL;
@@ -37,8 +38,9 @@ int main() {
 	cmd_types["deletelast"] = DB_DELETELAST;
 	cmd_types["search"] = DB_SEARCH;
 	cmd_types["help"] = DB_HELP;
+	cmd_types["exit"] = DB_EXIT;
 
-	// ÊäÈë
+	// è¾“å…¥
 	while (true) {
 		cout << "> ";
 		getline(cin, input_line);
@@ -48,7 +50,7 @@ int main() {
 		}
 
 		switch (cmd_types[input_datas[0]]){
-			// ²åÈë
+			// æ’å…¥
 			case DB_INSERT:{
 				results.clear();
 				if (input_datas.size() < 3) {
@@ -59,7 +61,7 @@ int main() {
 				cout << "Input successfully!" << endl;
 				break;
 			}
-			// ÏÔÊ¾ËùÓĞÄÚÈİ
+			// æ˜¾ç¤ºæ‰€æœ‰å†…å®¹
 			case DB_SHOWALL:{
 				results.clear();
 				results = db.Rangesearch_in_db("", "", true, true, true);
@@ -70,7 +72,7 @@ int main() {
 				cout << results.size() << " result(s)." << endl;
 				break;
 			}
-			// É¾³ı
+			// åˆ é™¤
 			case DB_DELETE:{
 				results.clear();
 				try {
@@ -86,7 +88,7 @@ int main() {
 				}
 				break;
 			}
-			// É¾³ı²éÑ¯½á¹û
+			// åˆ é™¤æŸ¥è¯¢ç»“æœ
 			case DB_DELETELAST: {
 				int remove_count = 0;
 				for (int i = 0; i < results.size(); ++i) {
@@ -102,14 +104,14 @@ int main() {
 				cout << "Remove " << remove_count << " data(s)!" << endl;
 				break;
 			}
-			// ²éÑ¯
+			// æŸ¥è¯¢
 			case DB_SEARCH: {
 				if (input_datas.size() < 3 || input_datas.size() % 2 == 0) {
 					cout << "Not enough arguments!" << endl;
 					break;
 				}
 
-				// µã²éÑ¯³õÊ¼»¯
+				// ç‚¹æŸ¥è¯¢åˆå§‹åŒ–
 				if (input_datas[1] == "==") {
 					if (input_datas.size() != 3) {
 						cout << "Wrong arguments!" << endl;
@@ -121,7 +123,7 @@ int main() {
 						results.push_back(pair<string, string*>(input_datas[2], ps_result.value_ptr));
 					}
 				}
-				// ·¶Î§²éÑ¯³õÊ¼»¯
+				// èŒƒå›´æŸ¥è¯¢åˆå§‹åŒ–
 				else {
 					string lower_str = "", upper_str = "";
 					bool lower_equal, upper_equal, no_upper;
@@ -131,7 +133,7 @@ int main() {
 
 					while (input_datas.size() - process_ptr >= 2) {
 						string ope = input_datas[process_ptr];
-						// ³ö´í´¦Àí
+						// å‡ºé”™å¤„ç†
 						if (find(rangesearch_opes.begin(), rangesearch_opes.end(), ope) == rangesearch_opes.end() ||
 							(ope[0] == '>' && lower_str.size() > 0) ||
 							(ope[0] == '<' && upper_str.size() > 0)) {
@@ -163,12 +165,27 @@ int main() {
 				cout << results.size() << " result(s)." << endl;
 				break;
 			}
-			// °ïÖú
+			// å¸®åŠ©
 			case DB_HELP: {
-				cout << "Usage: \r\n* insert <key> <value>: insert datas into db.\r\ndelete <key>: delete keys from db.\r\n*search [<operator> <key>]: search by operator\r\n  Avaliable operators: <, <=, >, >=, ==, !=\r\n" << endl;
+				cout << "Usage:\r\n\
+* insert <key> <value>: Insert datas into db. \r\n\
+* search [<operator> <key>]: Search by operator\r\n\
+\tAvaliable operators: <, <=, >, >=, ==, !=\r\n\
+* showall: Show all key-value in database.\r\n\
+* delete <key>: Delete keys from db.\r\n\
+* deletelast: Delete last search result.\r\n\
+* help: Show help info.\r\n\
+* exit: Shutdown." << endl;
 				break;
 			}
-			// È±Ê¡·µ»Ø
+			// é€€å‡º
+			case DB_EXIT: {
+				db.erase();
+				cout << "Exit." << endl;
+				return 0;
+				break;
+			}
+			// ç¼ºçœè¿”å›
 			default:
 				cout << "Invalid input!" << endl;
 		}

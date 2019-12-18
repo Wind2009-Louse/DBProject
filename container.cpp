@@ -24,6 +24,29 @@ template <typename value_t> void Container<value_t>::Print_Container() {
 	}
 }
 
+// 删除容器及其子容器
+template <typename value_t> void Container<value_t>::erase() {
+	// 遍历节点，删除其内容
+	for (int i = 0; i < this->size; ++i) {
+		Node<value_t> node = this->nodes[i];
+		delete node.value_ptr;
+		// 若是S节点，删除其子容器
+		if (!node.type() && node.ptr) {
+			Container<value_t>* child_ctr = (Container*)node.ptr;
+			child_ctr->erase();
+		}
+	}
+
+	// 删除下一个容器
+	if (this->cptrs.ptrs[0]) {
+		Container* next_ctr = (Container*)(this->cptrs.ptrs[0]);
+		next_ctr->erase();
+	}
+
+	// 删除当前容器
+	delete this;
+}
+
 // 在container中查找在lower_str和upper_str范围的字符串
 template<typename value_t> vector<pair<string, value_t*> > Container<value_t>::Rangesearch_in_container(
 	const char* lower_str, const char* upper_str,
