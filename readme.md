@@ -53,7 +53,7 @@
 与论文相比，只使用了一位来判断是否为叶子节点。T-Node和S-Node为同一数据结构，具有相同的大小，使用delta-encoding会导致节点的大小不一，同时在频繁的插入、删除中，可能会因为delta-encoding的缘故需要在使用和不使用之前切换，从而对节点空间进行频繁的移动，造成额外的开销，因此没有delta-encoding位。
 T-Node和S-Node为同一数据结构，均有指针数据，因此对T-Node默认使用js位，没有在header中使用。而jt代表的S-Node指针内容没有实现（出于数据结构一致而没有添加额外元素），因此在header中也没有jt位。
 
-![](https://github.com/wind2009-louse/DBProject/doc/1.png)
+![](https://github.com/Wind2009-Louse/DBProject/blob/master/doc/1.png?raw=true)
 
 图1 容器和节点的储存情况
 
