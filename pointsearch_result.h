@@ -1,8 +1,11 @@
 #pragma once
 #include "container.cpp"
 
+// 正在查询中
 #define PS_SEARCHING 0
+// 查询结束，找到结果
 #define PS_SEARCHED 1
+// 查询结束，找不到结果
 #define PS_FAILED 2
 
 // 点查询返回数据格式
