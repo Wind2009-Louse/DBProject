@@ -139,14 +139,14 @@ S-Node比较步骤和T-Node的比较步骤基本相同。
 + 分裂
 
   + 虽然代码中没有实现嵌入式容器，但由于容器较小，依旧存在需要分裂的情况。分裂后，通过跳表信息存储同一级中的其它容器的信息。
-  
+
   ![](https://github.com/Wind2009-Louse/DBProject/blob/master/doc/2.png?raw=true)
 
   <center>图2 分裂示意图</center>
 
 分裂指标如下：
 
-~~size<sub>c</sub> >= a + b·s（论文中采取的分裂指标，由于没有实现嵌入式容器故不采用）~~
+~~<center>size<sub>c</sub> >= a + b·s（论文中采取的分裂指标，由于没有实现嵌入式容器故不采用）</center>~~
 
 ![](http://latex.codecogs.com/gif.latex?free_c%3C\frac{size_c}{8})
 
